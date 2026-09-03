@@ -1,0 +1,1637 @@
+[
+  {
+    "file": "index.php",
+    "line": 721,
+    "content": "const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';"
+  },
+  {
+    "file": "index.php",
+    "line": 722,
+    "content": "passwordInput.setAttribute('type', type);"
+  },
+  {
+    "file": "Admin\\help.php",
+    "line": 35,
+    "content": "Navigate to the Medicine Management page, click \"Add Medicine,\" fill in the form with details like name, barcode, quantity, type, and expiry date, then confirm to save."
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 118,
+    "content": ".type-combobox {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 121,
+    "content": ".type-combobox .type-input-wrapper {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 126,
+    "content": ".type-combobox .type-input-wrapper .form-control {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 129,
+    "content": ".type-combobox .type-chevron {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 139,
+    "content": ".type-combobox.open .type-chevron {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 142,
+    "content": ".type-dropdown {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 157,
+    "content": ".type-combobox.open .type-dropdown {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 160,
+    "content": ".type-dropdown-search {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 165,
+    "content": ".type-dropdown-search input {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 173,
+    "content": ".type-dropdown-list {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 177,
+    "content": ".type-dropdown-list::-webkit-scrollbar { width: 6px; }"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 178,
+    "content": ".type-dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 179,
+    "content": ".type-dropdown-item {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 189,
+    "content": ".type-dropdown-item:hover,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 190,
+    "content": ".type-dropdown-item.active {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 194,
+    "content": ".type-dropdown-item .type-badge {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 203,
+    "content": ".type-dropdown-item.new-type-item {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 208,
+    "content": ".type-dropdown-item.new-type-item .bi {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 211,
+    "content": ".type-dropdown-empty {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 218,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 219,
+    "content": ".dark-mode .type-dropdown {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 223,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-search,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 224,
+    "content": ".dark-mode .type-dropdown-search {"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 228,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-search input,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 229,
+    "content": ".dark-mode .type-dropdown-search input { color: #e2e8f0; }"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 230,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 231,
+    "content": ".dark-mode .type-dropdown-item { color: #e2e8f0; }"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 232,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item:hover,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 233,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item.active,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 234,
+    "content": ".dark-mode .type-dropdown-item:hover,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 235,
+    "content": ".dark-mode .type-dropdown-item.active { background: #1b5e3f33; color: #4ade80; }"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 236,
+    "content": "[data-bs-theme=\"dark\"] .type-badge,"
+  },
+  {
+    "file": "Admin\\medicine.php",
+    "line": 237,
+    "content": ".dark-mode .type-badge { background: #14532d; color: #86efac; }"
+  },
+  {
+    "file": "Admin\\purchases.php",
+    "line": 112,
+    "content": "/* ── Medicine Combobox (mirrors type-combobox from medicines page) ── */"
+  },
+  {
+    "file": "Admin\\settings.php",
+    "line": 569,
+    "content": "<input class=\"form-check-input\" type=\"checkbox\" id=\"notif_low_stock\" checked>"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 164,
+    "content": "$where[] = \"(LOWER(name) LIKE ? OR LOWER(barcode) LIKE ? OR LOWER(type) LIKE ? OR LOWER(description) LIKE ?)\";"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 341,
+    "content": "SELECT name, quantity, type, expiry_date, selling_price, reorder_point, average_daily_usage, suppliers"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 347,
+    "content": "SELECT name, quantity, type, expiry_date,"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 564,
+    "content": "SELECT m.id, m.name, m.quantity, m.type, m.expiry_date,"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 588,
+    "content": "'Type'           => $r['type'] ?: '—',"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 600,
+    "content": "'table' => ['columns' => ['Medicine','Qty','Type','Supplier','Days left','Suggested order'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 622,
+    "content": "? \"SELECT name, quantity, type, expiry_date FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= ? ORDER BY expiry_date ASC LIMIT 30\""
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 623,
+    "content": ": \"SELECT name, quantity, type, expiry_date FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date BETWEEN CURDATE() AND ? ORDER BY expiry_date ASC LIMIT 30\";"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 638,
+    "content": "'Type'     => $r['type'] ?: 'N/A',"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 647,
+    "content": "'table'  => ['columns' => ['Medicine','Qty','Type','Expiry','Status'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 723,
+    "content": "['label' => 'Current stock',   'value' => number_format((int)$med['quantity']), 'meta' => $med['type'] ?: 'No type'],"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 977,
+    "content": "'Type'    => ucfirst((string)$n['type']),"
+  },
+  {
+    "file": "Admin\\api\\chatbot.php",
+    "line": 984,
+    "content": "'table'  => ['columns' => ['Type','Message','Status','Date'], 'rows' => $table],"
+  },
+  {
+    "file": "Admin\\api\\check_alerts.php",
+    "line": 50,
+    "content": "$alerts[] = ['type' => 'critical_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Admin\\api\\check_alerts.php",
+    "line": 69,
+    "content": "$alerts[] = ['type' => 'low_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Admin\\api\\check_alerts.php",
+    "line": 94,
+    "content": "$alerts[] = ['type' => 'expired', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date']];"
+  },
+  {
+    "file": "Admin\\api\\check_alerts.php",
+    "line": 115,
+    "content": "$alerts[] = ['type' => 'expiring_soon', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date'], 'days_until' => $daysUntil];"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 22,
+    "content": "$stmt = $conn->prepare(\"SELECT id, name, barcode, quantity, type, description, expiry_date, created_at, selling_price FROM medicines WHERE id = ?\");"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 64,
+    "content": "$stmt = $conn->prepare(\"SELECT id, name, barcode, quantity, type, description, expiry_date, created_at, selling_price FROM medicines WHERE name LIKE ? OR barcode LIKE ? OR description LIKE ? ORDER BY $orderBy LIMIT ? OFFSET ?\");"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 108,
+    "content": "$stmt = $conn->prepare(\"UPDATE medicines SET name=?, barcode=?, quantity=?, type=?, description=?, expiry_date=?, selling_price=? WHERE id=?\");"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 109,
+    "content": "$stmt->bind_param('ssisssdi', $name, $barcode, $quantity, $type, $description, $expiry, $selling_price, $id);"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 124,
+    "content": "$type = trim($_POST['type']);"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 146,
+    "content": "$stmt = $conn->prepare(\"INSERT INTO medicines (name, barcode, quantity, type, description, expiry_date, selling_price, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())\");"
+  },
+  {
+    "file": "Admin\\api\\medicines.php",
+    "line": 147,
+    "content": "$stmt->bind_param('ssisssd', $name, $barcode, $quantity, $type, $description, $expiry, $selling_price);"
+  },
+  {
+    "file": "Admin\\api\\orders.php",
+    "line": 140,
+    "content": "m.type AS category,"
+  },
+  {
+    "file": "Admin\\api\\orders.php",
+    "line": 412,
+    "content": "(user_id, supplier_id, medicine_id, action, transaction_type, quantity, total_cost, line_total, notes, timestamp, order_id, invoice_number)"
+  },
+  {
+    "file": "Admin\\api\\purchases.php",
+    "line": 163,
+    "content": "if (isset($input['medicine_id'])) { $fields[] = 'medicine_id = ?'; $params[] = (int)$input['medicine_id']; $types .= 'i'; }"
+  },
+  {
+    "file": "Admin\\api\\realtime.php",
+    "line": 65,
+    "content": "echo \"event: update\\ndata: \" . json_encode(['type' => $notification['type'], 'message' => $notification['message']]) . \"\\n\\n\";"
+  },
+  {
+    "file": "Admin\\api\\reports.php",
+    "line": 13,
+    "content": "$type = isset($_GET['type']) ? $_GET['type'] : 'inventory';"
+  },
+  {
+    "file": "Admin\\api\\reports.php",
+    "line": 52,
+    "content": "'type' => 'inventory'"
+  },
+  {
+    "file": "Admin\\api\\reports.php",
+    "line": 132,
+    "content": "'type' => 'transactions'"
+  },
+  {
+    "file": "Admin\\api\\reports.php",
+    "line": 152,
+    "content": "'type' => 'transactions'"
+  },
+  {
+    "file": "Admin\\api\\reports.php",
+    "line": 184,
+    "content": "'type' => 'sales'"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 112,
+    "content": "'low_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 1000],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 113,
+    "content": "'critical_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 100],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 114,
+    "content": "'expiry_alert_days' => ['type' => 'int', 'min' => 1, 'max' => 365],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 115,
+    "content": "'auto_reorder_enabled' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 116,
+    "content": "'notification_frequency' => ['type' => 'enum', 'values' => ['realtime', 'hourly', 'daily', 'weekly']],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 117,
+    "content": "'notification_method' => ['type' => 'enum', 'values' => ['system', 'email', 'both']],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 118,
+    "content": "'notif_low_stock' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 119,
+    "content": "'notif_expiry' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 120,
+    "content": "'notif_purchase' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 121,
+    "content": "'currency_symbol' => ['type' => 'string', 'max_length' => 10],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 122,
+    "content": "'date_format' => ['type' => 'enum', 'values' => ['Y-m-d', 'm/d/Y', 'd/m/Y', 'd-M-Y']],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 123,
+    "content": "'records_per_page' => ['type' => 'int', 'min' => 10, 'max' => 100],"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 124,
+    "content": "'default_language' => ['type' => 'enum', 'values' => ['en', 'es', 'fr', 'tl']]"
+  },
+  {
+    "file": "Admin\\api\\settings.php",
+    "line": 130,
+    "content": "switch ($rules['type']) {"
+  },
+  {
+    "file": "Admin\\assets\\js\\chatbot.js",
+    "line": 13,
+    "content": "const greeting = 'Hello! Choose a main question on the right, then I will show related follow-up questions. You can also type naturally using keywords like stock, expiry, supplier, order, sales, purchase, or report.';"
+  },
+  {
+    "file": "Admin\\assets\\js\\chatbot.js",
+    "line": 199,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Admin\\assets\\js\\chatbot.js",
+    "line": 217,
+    "content": "backBtn.type = 'button';"
+  },
+  {
+    "file": "Admin\\assets\\js\\chatbot.js",
+    "line": 225,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Admin\\assets\\js\\dashboard.js",
+    "line": 446,
+    "content": "const alertClass = alert.type === 'danger' ? 'alert-danger' : 'alert-warning';"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 17,
+    "content": "let allMedicineTypes = [];"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 67,
+    "content": "? allMedicineTypes.filter(t => t.toLowerCase().includes(lower))"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 68,
+    "content": ": [...allMedicineTypes];"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 84,
+    "content": "if (lower && !allMedicineTypes.some(t => t.toLowerCase() === lower)) {"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 107,
+    "content": "const active = list.querySelector('.type-dropdown-item.active');"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 149,
+    "content": "combobox.querySelector('.type-dropdown').addEventListener('click', (e) => {"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 180,
+    "content": "const addCombobox  = initTypeCombobox('add-type-combobox',  'add-type-display',  'type',      'add-type-search',  'add-type-list',  'add-type-error');"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 184,
+    "content": "function loadMedicineTypes() {"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 189,
+    "content": "allMedicineTypes = [...new Set("
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 190,
+    "content": "data.medicines.map(m => (m.type || '').trim()).filter(Boolean)"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 193,
+    "content": ".catch(err => console.error('Failed to load medicine types:', err));"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 214,
+    "content": "<td>${medicine.type || 'N/A'}</td>"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 292,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 325,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 356,
+    "content": "editCombobox._setValue(data.type || '');"
+  },
+  {
+    "file": "Admin\\assets\\js\\medicine.js",
+    "line": 400,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Admin\\assets\\js\\notifications.js",
+    "line": 169,
+    "content": "<div class=\"notification-icon ${getIconClass(notification.type)}\">"
+  },
+  {
+    "file": "Admin\\assets\\js\\notifications.js",
+    "line": 170,
+    "content": "${getNotificationIcon(notification.type)}"
+  },
+  {
+    "file": "Admin\\assets\\js\\notifications.js",
+    "line": 173,
+    "content": "<div class=\"notification-title\">${notification.type.toUpperCase()}</div>"
+  },
+  {
+    "file": "Admin\\assets\\js\\purchases.js",
+    "line": 116,
+    "content": "//  MEDICINE COMBOBOX — mirrors the Type Combobox from medicines.js"
+  },
+  {
+    "file": "Admin\\assets\\js\\purchases.js",
+    "line": 122,
+    "content": "* medicine-type combobox used in medicines.js."
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 83,
+    "content": "headers: ['Medicine Name', 'Barcode', 'Stock Level', 'Type', 'Description', 'Date Acquired', 'Expiry Date'],"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 88,
+    "content": "item.type || 'N/A',"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 443,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 482,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.pdf`,"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 504,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 538,
+    "content": "XLSX.utils.book_append_sheet(wb, ws, data.type.charAt(0).toUpperCase() + data.type.slice(1));"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 545,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.xlsx`,"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 563,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Admin\\assets\\js\\reports.js",
+    "line": 580,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.csv`,"
+  },
+  {
+    "file": "Admin\\assets\\js\\suppliers.js",
+    "line": 65,
+    "content": "if (viewMedicinesModalElement && typeof bootstrap !== 'undefined') {"
+  },
+  {
+    "file": "Admin\\assets\\js\\suppliers.js",
+    "line": 69,
+    "content": "if (editMedicineModalElement && typeof bootstrap !== 'undefined') {"
+  },
+  {
+    "file": "Admin\\config\\settings_helper.php",
+    "line": 261,
+    "content": "'type' => $row['type']"
+  },
+  {
+    "file": "Admin\\includes\\nav.php",
+    "line": 2573,
+    "content": "button.type = 'button';"
+  },
+  {
+    "file": "Pharmacists\\phar_help.php",
+    "line": 35,
+    "content": "Navigate to the Medicine Management page, click \"Add Medicine,\" fill in the form with details like name, barcode, quantity, type, and expiry date, then confirm to save."
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 118,
+    "content": ".type-combobox {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 121,
+    "content": ".type-combobox .type-input-wrapper {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 126,
+    "content": ".type-combobox .type-input-wrapper .form-control {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 129,
+    "content": ".type-combobox .type-chevron {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 139,
+    "content": ".type-combobox.open .type-chevron {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 142,
+    "content": ".type-dropdown {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 157,
+    "content": ".type-combobox.open .type-dropdown {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 160,
+    "content": ".type-dropdown-search {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 165,
+    "content": ".type-dropdown-search input {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 173,
+    "content": ".type-dropdown-list {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 177,
+    "content": ".type-dropdown-list::-webkit-scrollbar { width: 6px; }"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 178,
+    "content": ".type-dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 179,
+    "content": ".type-dropdown-item {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 189,
+    "content": ".type-dropdown-item:hover,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 190,
+    "content": ".type-dropdown-item.active {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 194,
+    "content": ".type-dropdown-item .type-badge {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 203,
+    "content": ".type-dropdown-item.new-type-item {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 208,
+    "content": ".type-dropdown-item.new-type-item .bi {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 211,
+    "content": ".type-dropdown-empty {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 218,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 219,
+    "content": ".dark-mode .type-dropdown {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 223,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-search,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 224,
+    "content": ".dark-mode .type-dropdown-search {"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 228,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-search input,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 229,
+    "content": ".dark-mode .type-dropdown-search input { color: #e2e8f0; }"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 230,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 231,
+    "content": ".dark-mode .type-dropdown-item { color: #e2e8f0; }"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 232,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item:hover,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 233,
+    "content": "[data-bs-theme=\"dark\"] .type-dropdown-item.active,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 234,
+    "content": ".dark-mode .type-dropdown-item:hover,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 235,
+    "content": ".dark-mode .type-dropdown-item.active { background: #1b5e3f33; color: #4ade80; }"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 236,
+    "content": "[data-bs-theme=\"dark\"] .type-badge,"
+  },
+  {
+    "file": "Pharmacists\\phar_medicine.php",
+    "line": 237,
+    "content": ".dark-mode .type-badge { background: #14532d; color: #86efac; }"
+  },
+  {
+    "file": "Pharmacists\\phar_purchases.php",
+    "line": 112,
+    "content": "/* ── Medicine Combobox (mirrors type-combobox from medicines page) ── */"
+  },
+  {
+    "file": "Pharmacists\\phar_settings.php",
+    "line": 569,
+    "content": "<input class=\"form-check-input\" type=\"checkbox\" id=\"notif_low_stock\" checked>"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 164,
+    "content": "$where[] = \"(LOWER(name) LIKE ? OR LOWER(barcode) LIKE ? OR LOWER(type) LIKE ? OR LOWER(description) LIKE ?)\";"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 341,
+    "content": "SELECT name, quantity, type, expiry_date, selling_price, reorder_point, average_daily_usage, suppliers"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 347,
+    "content": "SELECT name, quantity, type, expiry_date,"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 564,
+    "content": "SELECT m.id, m.name, m.quantity, m.type, m.expiry_date,"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 588,
+    "content": "'Type'           => $r['type'] ?: '—',"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 600,
+    "content": "'table' => ['columns' => ['Medicine','Qty','Type','Supplier','Days left','Suggested order'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 622,
+    "content": "? \"SELECT name, quantity, type, expiry_date FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= ? ORDER BY expiry_date ASC LIMIT 30\""
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 623,
+    "content": ": \"SELECT name, quantity, type, expiry_date FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date BETWEEN CURDATE() AND ? ORDER BY expiry_date ASC LIMIT 30\";"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 638,
+    "content": "'Type'     => $r['type'] ?: 'N/A',"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 647,
+    "content": "'table'  => ['columns' => ['Medicine','Qty','Type','Expiry','Status'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 723,
+    "content": "['label' => 'Current stock',   'value' => number_format((int)$med['quantity']), 'meta' => $med['type'] ?: 'No type'],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 977,
+    "content": "'Type'    => ucfirst((string)$n['type']),"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_chatbot.php",
+    "line": 984,
+    "content": "'table'  => ['columns' => ['Type','Message','Status','Date'], 'rows' => $table],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_check_alerts.php",
+    "line": 50,
+    "content": "$alerts[] = ['type' => 'critical_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_check_alerts.php",
+    "line": 69,
+    "content": "$alerts[] = ['type' => 'low_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_check_alerts.php",
+    "line": 94,
+    "content": "$alerts[] = ['type' => 'expired', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date']];"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_check_alerts.php",
+    "line": 115,
+    "content": "$alerts[] = ['type' => 'expiring_soon', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date'], 'days_until' => $daysUntil];"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 22,
+    "content": "$stmt = $conn->prepare(\"SELECT id, name, barcode, quantity, type, description, expiry_date, created_at, selling_price FROM medicines WHERE id = ?\");"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 64,
+    "content": "$stmt = $conn->prepare(\"SELECT id, name, barcode, quantity, type, description, expiry_date, created_at, selling_price FROM medicines WHERE name LIKE ? OR barcode LIKE ? OR description LIKE ? ORDER BY $orderBy LIMIT ? OFFSET ?\");"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 108,
+    "content": "$stmt = $conn->prepare(\"UPDATE medicines SET name=?, barcode=?, quantity=?, type=?, description=?, expiry_date=?, selling_price=? WHERE id=?\");"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 109,
+    "content": "$stmt->bind_param('ssisssdi', $name, $barcode, $quantity, $type, $description, $expiry, $selling_price, $id);"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 124,
+    "content": "$type = trim($_POST['type']);"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 146,
+    "content": "$stmt = $conn->prepare(\"INSERT INTO medicines (name, barcode, quantity, type, description, expiry_date, selling_price, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())\");"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_medicines.php",
+    "line": 147,
+    "content": "$stmt->bind_param('ssisssd', $name, $barcode, $quantity, $type, $description, $expiry, $selling_price);"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_purchases.php",
+    "line": 163,
+    "content": "if (isset($input['medicine_id'])) { $fields[] = 'medicine_id = ?'; $params[] = (int)$input['medicine_id']; $types .= 'i'; }"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_realtime.php",
+    "line": 65,
+    "content": "echo \"event: update\\ndata: \" . json_encode(['type' => $notification['type'], 'message' => $notification['message']]) . \"\\n\\n\";"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_reports.php",
+    "line": 13,
+    "content": "$type = isset($_GET['type']) ? $_GET['type'] : 'inventory';"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_reports.php",
+    "line": 52,
+    "content": "'type' => 'inventory'"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_reports.php",
+    "line": 132,
+    "content": "'type' => 'transactions'"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_reports.php",
+    "line": 152,
+    "content": "'type' => 'transactions'"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_reports.php",
+    "line": 184,
+    "content": "'type' => 'sales'"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 119,
+    "content": "'low_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 1000],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 120,
+    "content": "'critical_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 100],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 121,
+    "content": "'expiry_alert_days' => ['type' => 'int', 'min' => 1, 'max' => 365],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 122,
+    "content": "'auto_reorder_enabled' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 123,
+    "content": "'notification_frequency' => ['type' => 'enum', 'values' => ['realtime', 'hourly', 'daily', 'weekly']],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 124,
+    "content": "'notification_method' => ['type' => 'enum', 'values' => ['system', 'email', 'both']],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 125,
+    "content": "'notif_low_stock' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 126,
+    "content": "'notif_expiry' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 127,
+    "content": "'notif_purchase' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 128,
+    "content": "'currency_symbol' => ['type' => 'string', 'max_length' => 10],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 129,
+    "content": "'date_format' => ['type' => 'enum', 'values' => ['Y-m-d', 'm/d/Y', 'd/m/Y', 'd-M-Y']],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 130,
+    "content": "'records_per_page' => ['type' => 'int', 'min' => 10, 'max' => 100],"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 131,
+    "content": "'default_language' => ['type' => 'enum', 'values' => ['en', 'es', 'fr', 'tl']]"
+  },
+  {
+    "file": "Pharmacists\\api\\phar_settings.php",
+    "line": 137,
+    "content": "switch ($rules['type']) {"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_chatbot.js",
+    "line": 13,
+    "content": "const greeting = 'Hello! Choose a main question on the right, then I will show related follow-up questions. You can also type naturally using keywords like stock, expiry, supplier, order, sales, purchase, or report.';"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_chatbot.js",
+    "line": 199,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_chatbot.js",
+    "line": 217,
+    "content": "backBtn.type = 'button';"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_chatbot.js",
+    "line": 225,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_dashboard.js",
+    "line": 446,
+    "content": "const alertClass = alert.type === 'danger' ? 'alert-danger' : 'alert-warning';"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 17,
+    "content": "let allMedicineTypes = [];"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 67,
+    "content": "? allMedicineTypes.filter(t => t.toLowerCase().includes(lower))"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 68,
+    "content": ": [...allMedicineTypes];"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 84,
+    "content": "if (lower && !allMedicineTypes.some(t => t.toLowerCase() === lower)) {"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 107,
+    "content": "const active = list.querySelector('.type-dropdown-item.active');"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 149,
+    "content": "combobox.querySelector('.type-dropdown').addEventListener('click', (e) => {"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 180,
+    "content": "const addCombobox  = initTypeCombobox('add-type-combobox',  'add-type-display',  'type',      'add-type-search',  'add-type-list',  'add-type-error');"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 184,
+    "content": "function loadMedicineTypes() {"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 189,
+    "content": "allMedicineTypes = [...new Set("
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 190,
+    "content": "data.medicines.map(m => (m.type || '').trim()).filter(Boolean)"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 193,
+    "content": ".catch(err => console.error('Failed to load medicine types:', err));"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 214,
+    "content": "<td>${medicine.type || 'N/A'}</td>"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 292,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 325,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 356,
+    "content": "editCombobox._setValue(data.type || '');"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_medicine.js",
+    "line": 400,
+    "content": "loadMedicineTypes();"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_notifications.js",
+    "line": 169,
+    "content": "<div class=\"notification-icon ${getIconClass(notification.type)}\">"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_notifications.js",
+    "line": 170,
+    "content": "${getNotificationIcon(notification.type)}"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_notifications.js",
+    "line": 173,
+    "content": "<div class=\"notification-title\">${notification.type.toUpperCase()}</div>"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_purchases.js",
+    "line": 116,
+    "content": "//  MEDICINE COMBOBOX — mirrors the Type Combobox from medicines.js"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_purchases.js",
+    "line": 122,
+    "content": "* medicine-type combobox used in medicines.js."
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 83,
+    "content": "headers: ['Medicine Name', 'Barcode', 'Stock Level', 'Type', 'Description', 'Date Acquired', 'Expiry Date'],"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 88,
+    "content": "item.type || 'N/A',"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 443,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 482,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.pdf`,"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 504,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 538,
+    "content": "XLSX.utils.book_append_sheet(wb, ws, data.type.charAt(0).toUpperCase() + data.type.slice(1));"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 545,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.xlsx`,"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 563,
+    "content": "const meta = getReportMeta(data.type);"
+  },
+  {
+    "file": "Pharmacists\\assets\\js\\phar_reports.js",
+    "line": 580,
+    "content": "`${data.type}_report_${new Date().toISOString().split('T')[0]}.csv`,"
+  },
+  {
+    "file": "Pharmacists\\config\\settings_helper.php",
+    "line": 261,
+    "content": "'type' => $row['type']"
+  },
+  {
+    "file": "Pharmacists\\includes\\nav.php",
+    "line": 2573,
+    "content": "button.type = 'button';"
+  },
+  {
+    "file": "Suppliers\\sup_help.php",
+    "line": 34,
+    "content": "Navigate to the Medicine Management page, click \"Add Medicine,\" fill in the form with details like name, barcode, quantity, type, and expiry date, then confirm to save."
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 110,
+    "content": "#editMedicineModal .type-display-input,"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 112,
+    "content": "#addNewMedicineModal .type-display-input {"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 139,
+    "content": ".type-combobox { position: relative; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 140,
+    "content": ".type-combobox .type-input-wrapper { position: relative; display: flex; align-items: center; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 141,
+    "content": ".type-combobox .type-input-wrapper .form-control { padding-right: 2.8rem; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 142,
+    "content": ".type-combobox .type-chevron {"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 146,
+    "content": ".type-combobox.open .type-chevron { transform: translateY(-50%) rotate(180deg); }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 147,
+    "content": ".type-dropdown {"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 153,
+    "content": ".type-combobox.open .type-dropdown { display: flex; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 154,
+    "content": ".type-dropdown-search { padding: 0.6rem 0.85rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 155,
+    "content": ".type-dropdown-search input {"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 158,
+    "content": ".type-dropdown-list { overflow-y: auto; flex: 1; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 159,
+    "content": ".type-dropdown-list::-webkit-scrollbar { width: 6px; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 160,
+    "content": ".type-dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 161,
+    "content": ".type-dropdown-item {"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 165,
+    "content": ".type-dropdown-item:hover, .type-dropdown-item.active { background: #ecfdf5; color: #1b5e3f; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 166,
+    "content": ".type-dropdown-empty { padding: 0.75rem 1rem; color: #64748b; font-size: 0.875rem; }"
+  },
+  {
+    "file": "Suppliers\\sup_medicine.php",
+    "line": 211,
+    "content": "<option value=\"type\">Type</option>"
+  },
+  {
+    "file": "Suppliers\\sup_settings.php",
+    "line": 289,
+    "content": "<input class=\"form-check-input\" type=\"checkbox\" id=\"notif_low_stock\" checked>"
+  },
+  {
+    "file": "Suppliers\\api\\sup_adjust_supplier_stock.php",
+    "line": 78,
+    "content": "$logStmt = $conn->prepare(\"INSERT INTO user_activity (user_id, activity_type, activity_description, created_at) VALUES (?, 'adjust_stock', ?, NOW())\");"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 183,
+    "content": "$where[] = '(LOWER(m.name) LIKE ? OR LOWER(m.barcode) LIKE ? OR LOWER(m.type) LIKE ?)';"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 226,
+    "content": "SELECT m.name, si.quantity, m.type, m.expiry_date, si.unit_price"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 366,
+    "content": "SELECT m.name, si.quantity, m.type, m.expiry_date, si.unit_price"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 383,
+    "content": "'Type'     => $r['type'] ?: '—',"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 389,
+    "content": "'table'   => ['columns' => ['Medicine', 'Qty', 'Type', 'Unit price', 'Expiry'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 408,
+    "content": "['label' => 'Your stock',  'value' => number_format((int)($med['supplier_qty'] ?? 0)), 'meta' => $med['type'] ?: 'No type'],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 582,
+    "content": "SELECT st.action, st.transaction_type, st.quantity, st.total_cost, st.timestamp, st.notes, m.name AS medicine_name"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 593,
+    "content": "'Type'     => ucwords(str_replace('_', ' ', (string)($t['transaction_type'] ?? ''))),"
+  },
+  {
+    "file": "Suppliers\\api\\sup_chatbot.php",
+    "line": 600,
+    "content": "'table'   => ['columns' => ['Medicine', 'Action', 'Type', 'Qty', 'Amount', 'Time'], 'rows' => $tableRows],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_check_alerts.php",
+    "line": 50,
+    "content": "$alerts[] = ['type' => 'critical_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Suppliers\\api\\sup_check_alerts.php",
+    "line": 69,
+    "content": "$alerts[] = ['type' => 'low_stock', 'medicine' => $row['name'], 'quantity' => $row['quantity']];"
+  },
+  {
+    "file": "Suppliers\\api\\sup_check_alerts.php",
+    "line": 94,
+    "content": "$alerts[] = ['type' => 'expired', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date']];"
+  },
+  {
+    "file": "Suppliers\\api\\sup_check_alerts.php",
+    "line": 115,
+    "content": "$alerts[] = ['type' => 'expiring_soon', 'medicine' => $row['name'], 'expiry_date' => $row['expiry_date'], 'days_until' => $daysUntil];"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 121,
+    "content": "$sort = in_array($_GET['sort'] ?? 'name', ['name', 'quantity', 'type']) ? $_GET['sort'] : 'name';"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 127,
+    "content": "m.type,"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 332,
+    "content": "$type = trim($_POST['type'] ?? '');"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 378,
+    "content": "$insertStmt = $conn->prepare(\"INSERT INTO medicines (name, barcode, quantity, type, description, expiry_date, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())\");"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 383,
+    "content": "$insertStmt->bind_param('ssisss', $name, $barcode, $catalogQuantity, $type, $description, $expiry_date);"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 449,
+    "content": "$type = trim($_POST['type'] ?? '');"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 507,
+    "content": "$medStmt = $conn->prepare(\"UPDATE medicines SET name = ?, barcode = ?, type = ?, description = ?, expiry_date = ? WHERE id = ?\");"
+  },
+  {
+    "file": "Suppliers\\api\\sup_medicines.php",
+    "line": 511,
+    "content": "$medStmt->bind_param('sssssi', $name, $barcode, $type, $description, $expiry_date, $medicine_id);"
+  },
+  {
+    "file": "Suppliers\\api\\sup_realtime.php",
+    "line": 37,
+    "content": "echo \"event: update\\ndata: \" . json_encode(['type' => $notification['type'], 'message' => $notification['message']]) . \"\\n\\n\";"
+  },
+  {
+    "file": "Suppliers\\api\\sup_reports.php",
+    "line": 13,
+    "content": "$type = isset($_GET['type']) ? $_GET['type'] : 'inventory';"
+  },
+  {
+    "file": "Suppliers\\api\\sup_reports.php",
+    "line": 42,
+    "content": "m.type,"
+  },
+  {
+    "file": "Suppliers\\api\\sup_reports.php",
+    "line": 72,
+    "content": "'type' => 'inventory'"
+  },
+  {
+    "file": "Suppliers\\api\\sup_reports.php",
+    "line": 136,
+    "content": "'type' => 'transactions'"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 125,
+    "content": "'low_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 1000],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 126,
+    "content": "'critical_stock_threshold' => ['type' => 'int', 'min' => 1, 'max' => 100],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 127,
+    "content": "'expiry_alert_days' => ['type' => 'int', 'min' => 1, 'max' => 365],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 128,
+    "content": "'auto_reorder_enabled' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 129,
+    "content": "'notification_frequency' => ['type' => 'enum', 'values' => ['realtime', 'hourly', 'daily', 'weekly']],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 130,
+    "content": "'notification_method' => ['type' => 'enum', 'values' => ['system', 'email', 'both']],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 131,
+    "content": "'notif_low_stock' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 132,
+    "content": "'notif_expiry' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 133,
+    "content": "'notif_prescription' => ['type' => 'bool'],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 134,
+    "content": "'currency_symbol' => ['type' => 'string', 'max_length' => 10],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 135,
+    "content": "'date_format' => ['type' => 'enum', 'values' => ['Y-m-d', 'm/d/Y', 'd/m/Y', 'd-M-Y']],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 136,
+    "content": "'records_per_page' => ['type' => 'int', 'min' => 10, 'max' => 100],"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 137,
+    "content": "'default_language' => ['type' => 'enum', 'values' => ['en', 'es', 'fr', 'tl']]"
+  },
+  {
+    "file": "Suppliers\\api\\sup_settings.php",
+    "line": 143,
+    "content": "switch ($rules['type']) {"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_chatbot.js",
+    "line": 163,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_chatbot.js",
+    "line": 181,
+    "content": "backBtn.type = 'button';"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_chatbot.js",
+    "line": 189,
+    "content": "chip.type = 'button';"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 19,
+    "content": "let allMedicineTypes = [];"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 91,
+    "content": "? allMedicineTypes.filter((type) => type.toLowerCase().includes(lower))"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 92,
+    "content": ": [...allMedicineTypes];"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 108,
+    "content": "if (lower && !allMedicineTypes.some((type) => type.toLowerCase() === lower)) {"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 155,
+    "content": "combobox.querySelector('.type-dropdown').addEventListener('click', (e) => {"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 208,
+    "content": "'type',"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 283,
+    "content": "<td class=\"col-detail\">${escapeHtml(med.type || '-')}</td>"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 303,
+    "content": "allMedicineTypes = [...new Set(["
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 304,
+    "content": "...allMedicineTypes,"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 305,
+    "content": "...medicines.map((med) => String(med.type || '').trim()).filter(Boolean)"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 341,
+    "content": "editTypeCombobox._setValue(med.type || '');"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 343,
+    "content": "document.getElementById('edit_type').value = med.type || '';"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 421,
+    "content": "if (!addNewMedicineForm.checkValidity() || !typeValid) {"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_medicine.js",
+    "line": 463,
+    "content": "if (!editMedicineForm.checkValidity() || !typeValid) {"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_notifications.js",
+    "line": 144,
+    "content": "<div class=\"notification-icon ${getIconClass(notification.type)}\">"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_notifications.js",
+    "line": 145,
+    "content": "${getNotificationIcon(notification.type)}"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_notifications.js",
+    "line": 148,
+    "content": "<div class=\"notification-title\">${notification.type.toUpperCase()}</div>"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_reports.js",
+    "line": 165,
+    "content": "<td>${escapeHtml(row.type || 'N/A')}</td>"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_reports.js",
+    "line": 281,
+    "content": "head = [['Medicine Name', 'Barcode', 'Remaining Stock', 'Type', 'Description', 'Date Acquired', 'Expiry Date']];"
+  },
+  {
+    "file": "Suppliers\\assets\\js\\sup_reports.js",
+    "line": 286,
+    "content": "row.type || 'N/A',"
+  },
+  {
+    "file": "Suppliers\\config\\sup_settings_helper.php",
+    "line": 270,
+    "content": "'type' => $row['type']"
+  }
+]

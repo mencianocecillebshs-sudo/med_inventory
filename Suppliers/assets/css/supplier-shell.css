@@ -1,0 +1,38 @@
+/**
+ * Shared supplier workspace shell — keeps nav + page layout consistent on every page.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f7fa;
+    color: #2c3e50;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.main-content,
+body.sidebar-collapsed .main-content,
+#mainContent.main-content {
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 1760px !important;
+    padding: 1.5rem !important;
+    box-sizing: border-box;
+}
+
+.sidebar,
+.sidebar-overlay,
+.btn-mobile-toggle,
+#mobile-sidebar-toggle,
+#toggle-sidebar,
+#toggle-sidebar-mobile {
+    display: none !important;
+}
+
+@media (max-width: 991.98px) {
+    .main-content,
+    #mainContent.main-content {
+        padding: 1rem !important;
+    }
+}

@@ -1,0 +1,360 @@
+diff --git a/med_inventory/Admin/analytics.php b/med_inventory/Admin/analytics.php
+index 54da455..15273c5 100644
+--- a/med_inventory/Admin/analytics.php
++++ b/med_inventory/Admin/analytics.php
+@@ -215,9 +215,20 @@ if (!isset($_SESSION['user_id'])) {
+                     <h5><i class="bi bi-exclamation-triangle"></i> Low-Stock Forecast
+                         <span class="badge bg-light text-dark border ms-2" id="low-stock-threshold-badge" style="font-weight:500;">&nbsp;</span>
+                     </h5>
++                    <div id="low-stock-model-note" class="small text-muted mb-3"></div>
+                     <div class="chart-container"><canvas id="stockForecastChart"></canvas></div>
+                 </div>
+             </div>
++
++           
++
++            <!-- Low-stock model chart card -->
++            <div class="col-12 mb-4">
++                <div class="card">
++                    <h5><i class="bi bi-bar-chart-line"></i> Depletion Projection</h5>
++                    <div class="chart-container"><canvas id="low-stock-model-chart"></canvas></div>
++                </div>
++            </div>
+         </div>
+     </div>
+     <!--  END OF #mainContent  -->
+@@ -254,8 +265,10 @@ if (!isset($_SESSION['user_id'])) {
+         const coreRisk = document.getElementById('core-risk');
+         const coreRiskSub = document.getElementById('core-risk-sub');
+         const lowStockThresholdBadge = document.getElementById('low-stock-threshold-badge');
++        const lowStockModelNote = document.getElementById('low-stock-model-note');
++        const lowStockModelChartCanvas = document.getElementById('low-stock-model-chart');
+ 
+-        let demandChart, topChart, trendsChart, stockChart;
++        let demandChart, topChart, trendsChart, stockChart, lowStockModelChart;
+ 
+         // Helper: get Chart.js scale/legend colors based on dark mode
+         const chartColors = () => {
+@@ -378,6 +391,87 @@ if (!isset($_SESSION['user_id'])) {
+             ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+         };
+ 
++        const renderLowStockModelChart = (data) => {
++            if (lowStockModelChart) lowStockModelChart.destroy();
++            const items = (data || []).slice(0, 10);
++            if (items.length === 0) {
++                showEmptyState('low-stock-model-chart', 'No depletion projection data');
++                return;
++            }
++
++            const sorted = [...items].sort((a, b) => {
++                const aDays = a.days_until_empty >= 999 ? Number.MAX_VALUE : parseFloat(a.days_until_empty) || 0;
++                const bDays = b.days_until_empty >= 999 ? Number.MAX_VALUE : parseFloat(b.days_until_empty) || 0;
++                return aDays - bDays;
++            });
++
++            const labels = sorted.map(x => x.name);
++            const modelKeys = ['random_forest', 'svm_xgboost', 'prophet', 'isolation_forest'];
++            const modelLabels = {
++                random_forest: 'Random Forest',
++                svm_xgboost: 'SVM / XGBoost',
++                prophet: 'Prophet',
++                isolation_forest: 'Isolation Forest'
++            };
++            const modelColors = {
++                random_forest: '#2563eb',
++                svm_xgboost: '#f97316',
++                prophet: '#10b981',
++                isolation_forest: '#8b5cf6'
++            };
++
++            const datasets = modelKeys.map((key) => ({
++                key,
++                label: modelLabels[key],
++                data: sorted.map(item => {
++                    const value = item.depletion_models?.[key];
++                    return (value >= 999 || value === undefined || value === null)
++                        ? null
++                        : parseFloat(value) || 0;
++                }),
++                backgroundColor: modelColors[key],
++                borderRadius: 8,
++                borderWidth: 1,
++                borderColor: modelColors[key]
++            }));
++
++            const ctx = lowStockModelChartCanvas.getContext('2d');
++            const scales = darkScales();
++            scales.x.beginAtZero = true;
++            scales.x.title = { display: true, text: 'Estimated days until empty', color: chartColors().tick };
++            delete scales.y;
++
++            lowStockModelChart = new Chart(ctx, {
++                type: 'bar',
++                data: {
++                    labels,
++                    datasets
++                },
++                options: {
++                    responsive: true,
++                    maintainAspectRatio: false,
++                    layout: { padding: { top: 16 } },
++                    indexAxis: 'y',
++                    plugins: {
++                        legend: { display: true, position: 'top', labels: { color: chartColors().legend } },
++                        tooltip: {
++                            callbacks: {
++                                label: context => {
++                                    const item = sorted[context.dataIndex];
++                                    const rawValue = item.depletion_models?.[context.dataset.key];
++                                    if (rawValue >= 999) {
++                                        return `${context.dataset.label}: Not enough usage to estimate`;
++                                    }
++                                    return `${context.dataset.label}: ${parseFloat(context.parsed.x).toFixed(1)} days`;
++                                }
++                            }
++                        }
++                    },
++                    scales
++                }
++            });
++        };
++
+         const loadDemand = (s, e) => {
+             demandLoading.style.display = 'inline-block';
+             fetch(`api/analytics.php?action=daily_trends&start=${s}&end=${e}`)
+@@ -557,6 +651,10 @@ if (!isset($_SESSION['user_id'])) {
+                         low: res.low_threshold ?? res.threshold ?? null,
+                         critical: res.critical_threshold ?? null
+                     };
++                    window.lowStockModel = {
++                        model: res.model ?? null,
++                        lookbackDays: res.lookback_days ?? null
++                    };
+                     if (lowStockThresholdBadge) {
+                         const lo = window.lowStockThresholds.low;
+                         const cr = window.lowStockThresholds.critical;
+@@ -565,6 +663,14 @@ if (!isset($_SESSION['user_id'])) {
+                                 ? `Thresholds: Low Gëñ ${lo ?? 'GÇö'} units -+ Critical Gëñ ${cr ?? 'GÇö'} units`
+                                 : '';
+                     }
++                    if (lowStockModelNote) {
++                        const modelName = window.lowStockModel.model === 'consumption_based_stock_depletion'
++                            ? 'consumption-based depletion model'
++                            : 'depletion model';
++                        const lookback = window.lowStockModel.lookbackDays || 30;
++                        lowStockModelNote.innerHTML =
++                            `<i class="bi bi-info-circle"></i> Using the ${modelName} with ${lookback} days of recent consumption data to estimate depletion.`;
++                    }
+ 
+                     if (d.length === 0) {
+                         if (stockChart) stockChart.destroy();
+@@ -586,6 +692,7 @@ if (!isset($_SESSION['user_id'])) {
+                             }
+                         });
+                         window.lowStock = { critical: [], warning: [], items: [] };
++                        renderLowStockModelChart([]);
+                         generateModalSummary();
+                         return;
+                     }
+@@ -678,6 +785,7 @@ if (!isset($_SESSION['user_id'])) {
+                         warning:  d.filter(x => x.status === 'warning').map(x => x.name),
+                         items: d
+                     };
++                    renderLowStockModelChart(d);
+                     generateModalSummary();
+                 })
+                 .catch(err => {
+@@ -685,12 +793,14 @@ if (!isset($_SESSION['user_id'])) {
+                     showToast('Error loading low-stock forecast: ' + err.message, 'danger');
+                     if (stockChart) stockChart.destroy();
+                     showEmptyState('stockForecastChart', 'Error loading data');
++                    if (lowStockModelNote) {
++                        lowStockModelNote.textContent = 'Unable to load depletion model details.';
++                    }
+                 });
+         };
+ 
+-        // MODAL SUMMARY GENERATOR
+         const generateModalSummary = () => {
+-            const { demandData, supplyDemand, topMedicines, lowStock, lowStockThresholds } = window;
++            const { demandData, supplyDemand, topMedicines, lowStock, lowStockThresholds, lowStockModel } = window;
+             const start = startDate.value;
+             const end = endDate.value;
+             const period = start && end
+@@ -760,6 +870,16 @@ if (!isset($_SESSION['user_id'])) {
+                     </div>
+                 </div>`;
+             }
++            if (window.lowStockModel?.model === 'consumption_based_stock_depletion') {
++                html += `
++                <div class="insight-item info d-flex align-items-start">
++                    <i class="bi bi-calculator icon"></i>
++                    <div>
++                        <strong>Depletion model</strong><br>
++                        <small>This forecast uses a <strong>consumption-based depletion model</strong>, estimating remaining days from average daily demand over the last <strong>${window.lowStockModel?.lookbackDays ?? 30}</strong> days.</small>
++                    </div>
++                </div>`;
++            }
+ 
+             if (lowStock) {
+                 const crit = lowStock.critical;
+diff --git a/med_inventory/Pharmacists/phar_analytics.php b/med_inventory/Pharmacists/phar_analytics.php
+index 8932f38..8ff0a5e 100644
+--- a/med_inventory/Pharmacists/phar_analytics.php
++++ b/med_inventory/Pharmacists/phar_analytics.php
+@@ -215,9 +215,18 @@ if (!isset($_SESSION['user_id'])) {
+                     <h5><i class="bi bi-exclamation-triangle"></i> Low-Stock Forecast
+                         <span class="badge bg-light text-dark border ms-2" id="low-stock-threshold-badge" style="font-weight:500;">&nbsp;</span>
+                     </h5>
++                    <div id="low-stock-model-note" class="small text-muted mb-3"></div>
+                     <div class="chart-container"><canvas id="stockForecastChart"></canvas></div>
+                 </div>
+             </div>
++
++            <!-- Depletion projection card -->
++            <div class="col-12 mb-4">
++                <div class="card">
++                    <h5><i class="bi bi-bar-chart-line"></i> Depletion Projection</h5>
++                    <div class="chart-container"><canvas id="low-stock-model-chart"></canvas></div>
++                </div>
++            </div>
+         </div>
+     </div>
+     <!--  END OF #mainContent  -->
+@@ -254,8 +263,10 @@ if (!isset($_SESSION['user_id'])) {
+         const coreRisk = document.getElementById('core-risk');
+         const coreRiskSub = document.getElementById('core-risk-sub');
+         const lowStockThresholdBadge = document.getElementById('low-stock-threshold-badge');
++        const lowStockModelNote = document.getElementById('low-stock-model-note');
++        const lowStockModelChartCanvas = document.getElementById('low-stock-model-chart');
+ 
+-        let demandChart, topChart, trendsChart, stockChart;
++        let demandChart, topChart, trendsChart, stockChart, lowStockModelChart;
+ 
+         // Helper: get Chart.js scale/legend colors based on dark mode
+         const chartColors = () => {
+@@ -378,6 +389,87 @@ if (!isset($_SESSION['user_id'])) {
+             ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+         };
+ 
++        const renderLowStockModelChart = (data) => {
++            if (lowStockModelChart) lowStockModelChart.destroy();
++            const items = (data || []).slice(0, 10);
++            if (items.length === 0) {
++                showEmptyState('low-stock-model-chart', 'No depletion projection data');
++                return;
++            }
++
++            const sorted = [...items].sort((a, b) => {
++                const aDays = a.days_until_empty >= 999 ? Number.MAX_VALUE : parseFloat(a.days_until_empty) || 0;
++                const bDays = b.days_until_empty >= 999 ? Number.MAX_VALUE : parseFloat(b.days_until_empty) || 0;
++                return aDays - bDays;
++            });
++
++            const labels = sorted.map(x => x.name);
++            const modelKeys = ['random_forest', 'svm_xgboost', 'prophet', 'isolation_forest'];
++            const modelLabels = {
++                random_forest: 'Random Forest',
++                svm_xgboost: 'SVM / XGBoost',
++                prophet: 'Prophet',
++                isolation_forest: 'Isolation Forest'
++            };
++            const modelColors = {
++                random_forest: '#2563eb',
++                svm_xgboost: '#f97316',
++                prophet: '#10b981',
++                isolation_forest: '#8b5cf6'
++            };
++
++            const datasets = modelKeys.map((key) => ({
++                key,
++                label: modelLabels[key],
++                data: sorted.map(item => {
++                    const value = item.depletion_models?.[key];
++                    return (value >= 999 || value === undefined || value === null)
++                        ? null
++                        : parseFloat(value) || 0;
++                }),
++                backgroundColor: modelColors[key],
++                borderRadius: 8,
++                borderWidth: 1,
++                borderColor: modelColors[key]
++            }));
++
++            const ctx = lowStockModelChartCanvas.getContext('2d');
++            const scales = darkScales();
++            scales.x.beginAtZero = true;
++            scales.x.title = { display: true, text: 'Estimated days until empty', color: chartColors().tick };
++            delete scales.y;
++
++            lowStockModelChart = new Chart(ctx, {
++                type: 'bar',
++                data: {
++                    labels,
++                    datasets
++                },
++                options: {
++                    responsive: true,
++                    maintainAspectRatio: false,
++                    layout: { padding: { top: 16 } },
++                    indexAxis: 'y',
++                    plugins: {
++                        legend: { display: true, position: 'top', labels: { color: chartColors().legend } },
++                        tooltip: {
++                            callbacks: {
++                                label: context => {
++                                    const item = sorted[context.dataIndex];
++                                    const rawValue = item.depletion_models?.[context.dataset.key];
++                                    if (rawValue >= 999) {
++                                        return `${context.dataset.label}: Not enough usage to estimate`;
++                                    }
++                                    return `${context.dataset.label}: ${parseFloat(context.parsed.x).toFixed(1)} days`;
++                                }
++                            }
++                        }
++                    },
++                    scales
++                }
++            });
++        };
++
+         const loadDemand = (s, e) => {
+             demandLoading.style.display = 'inline-block';
+             fetch(`api/phar_analytics.php?action=daily_trends&start=${s}&end=${e}`)
+@@ -566,6 +658,19 @@ if (!isset($_SESSION['user_id'])) {
+                                 : '';
+                     }
+ 
++                    window.lowStockModel = {
++                        model: res.model ?? null,
++                        lookbackDays: res.lookback_days ?? null
++                    };
++                    if (lowStockModelNote) {
++                        const modelName = window.lowStockModel.model === 'consumption_based_stock_depletion'
++                            ? 'consumption-based depletion model'
++                            : 'depletion model';
++                        const lookback = window.lowStockModel.lookbackDays || 30;
++                        lowStockModelNote.innerHTML =
++                            `<i class="bi bi-info-circle"></i> Using the ${modelName} with ${lookback} days of recent consumption data to estimate depletion.`;
++                    }
++
+                     if (d.length === 0) {
+                         if (stockChart) stockChart.destroy();
+                         const ctx = document.getElementById('stockForecastChart').getContext('2d');
+@@ -586,6 +691,7 @@ if (!isset($_SESSION['user_id'])) {
+                             }
+                         });
+                         window.lowStock = { critical: [], warning: [], items: [] };
++                        renderLowStockModelChart([]);
+                         generateModalSummary();
+                         return;
+                     }
+@@ -678,6 +784,7 @@ if (!isset($_SESSION['user_id'])) {
+                         warning:  d.filter(x => x.status === 'warning').map(x => x.name),
+                         items: d
+                     };
++                    renderLowStockModelChart(d);
+                     generateModalSummary();
+                 })
+                 .catch(err => {
