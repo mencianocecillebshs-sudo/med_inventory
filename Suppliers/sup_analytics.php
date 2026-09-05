@@ -15,41 +15,15 @@ requireSupplierPage($conn);
     <link href="assets/css/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {font-family: 'Inter',sans-serif;background:#f8fafc;overflow-x:hidden;}
-        .main-content {margin-left:250px;padding:3rem;transition:margin-left .3s;}
+        body {font-family: 'Inter',sans-serif;background:#f8fafc;}
+        .main-content {margin-left:250px;padding:2rem;transition:margin-left .3s;}
         @media(max-width:768px){.main-content{margin-left:0;padding:1rem;}}
         .page-header{background:linear-gradient(135deg,#1b5e3f,#0f3f28);color:#fff;padding:2rem;border-radius:15px;margin-bottom:2rem;box-shadow:0 8px 24px rgba(27,94,63,.2);}
         .page-header h2{font-size:1.75rem;font-weight:700;}
         .card{border-radius:15px;box-shadow:0 8px 24px rgba(0,0,0,.08);background:#fff;padding:1.5rem;margin-bottom:1.5rem;}
         .card h5{font-weight:700;font-size:1.1rem;display:flex;align-items:center;}
         .card h5 i{margin-right:.5rem;color:#1b5e3f;}
-        .filter-card{background:#fff;padding:1.5rem;margin-bottom:1rem;border-radius:15px;box-shadow:0 4px 16px rgba(0,0,0,.06);border-left:5px solid #1b5e3f;}
-        .filter-card h6{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;color:#0f3f28;font-weight:800;}
-        .analytics-date-grid{display:grid;grid-template-columns:1fr auto auto;gap:.85rem;align-items:end;}
-        .date-range-panel{display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:end;padding:.85rem;border:1px solid #d1fae5;border-radius:14px;background:linear-gradient(135deg,#f8fafc,#ecfdf5);}
-        .date-field{min-width:0;}
-        .date-field .form-label{display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem;color:#335045;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
-        .date-input-shell{position:relative;}
-        .date-input-shell i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#1b5e3f;pointer-events:none;z-index:1;}
-        .date-input-shell .form-control{min-height:46px;padding-left:2.65rem;background:#fff;color:#1e293b;border-color:#b7e4ce;}
-        .date-range-separator{display:grid;place-items:center;width:38px;height:38px;margin-bottom:.25rem;border-radius:999px;background:#1b5e3f;color:#fff;}
-        .date-range-status{grid-column:1 / -1;display:flex;align-items:center;gap:.45rem;min-height:1.2rem;color:#64748b;font-size:.8rem;font-weight:700;}
-        .date-range-status i{color:#1b5e3f;}
-        .algo-filter-panel{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
-        .algo-filter-copy h6{margin-bottom:.25rem;}
-        .algo-filter-copy p{margin:0;color:#64748b;font-size:.875rem;}
-        .algo-dropdown{min-width:min(100%,360px);}
-        .algo-dropdown .dropdown-toggle{display:flex;align-items:center;justify-content:space-between;gap:.75rem;border:2px solid #d1fae5;background:#f8fafc;color:#0f3f28;border-radius:12px;padding:.8rem 1rem;font-weight:700;}
-        .algo-dropdown .dropdown-menu{width:100%;border:1px solid #d1fae5;border-radius:14px;padding:.45rem;box-shadow:0 16px 42px rgba(15,23,42,.16);}
-        .algo-dropdown .dropdown-item{border-radius:10px;padding:.7rem .85rem;font-weight:600;color:#334155;display:flex;align-items:center;gap:.65rem;}
-        .algo-dropdown .dropdown-item:hover,.algo-dropdown .dropdown-item:focus{background:#dff8ec;color:#062f1d;}
-        .algo-dropdown .dropdown-item.active{background:linear-gradient(135deg,#1b5e3f,#0f3f28);color:#fff;}
-        .algorithm-grid.is-filtered{justify-content:center;}
-        .algorithm-grid.is-filtered > [data-algo-column]{width:100%;max-width:1120px;flex:0 0 100%;}
-        .algorithm-grid.is-filtered .algo-card{min-height:620px;}
-        .algorithm-grid.is-filtered .chart-container{height:560px;}
-        .algo-card{transition:transform .25s ease,box-shadow .25s ease,border-color .2s ease;}
-        .algo-card:hover{transform:translateY(-3px);box-shadow:0 16px 38px rgba(15,63,40,.14);}
+        .filter-card{background:#fff;padding:1.5rem;margin-bottom:2rem;border-radius:15px;box-shadow:0 4px 16px rgba(0,0,0,.06);border-left:5px solid #1b5e3f;}
         .form-control,.form-select{border-radius:10px;border:2px solid #e2e8f0;padding:.65rem 1rem;}
         .form-control:focus,.form-select:focus{border-color:#1b5e3f;box-shadow:0 0 0 .2rem rgba(27,94,63,.15);}
         .btn-primary{background:linear-gradient(135deg,#1b5e3f,#0f3f28);border:none;border-radius:10px;padding:.65rem 1.5rem;font-weight:600;}
@@ -66,7 +40,6 @@ requireSupplierPage($conn);
         .core-insight strong{font-size:1.35rem;color:#0f3f28;}
         .core-insight small.core-sub{display:block;color:#94a3b8;font-weight:500;font-size:.75rem;margin-top:.25rem;}
         @media(max-width:992px){.core-insights{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        @media(max-width:768px){.main-content{padding:1rem;}.analytics-date-grid{grid-template-columns:1fr;}.date-range-panel{grid-template-columns:1fr;}.date-range-separator{width:100%;height:30px;margin:0;}.date-range-separator i{transform:rotate(90deg);}.algo-filter-panel{align-items:stretch;flex-direction:column;}.algo-dropdown{min-width:100%;}.algorithm-grid.is-filtered .chart-container{height:380px;}}
         @media(max-width:576px){.core-insights{grid-template-columns:1fr;}}
 
         /* Modal Summary Styling */
@@ -108,8 +81,7 @@ requireSupplierPage($conn);
 <body>
     <?php include 'includes/nav.php'; ?>
 
-    <button class="btn btn-primary d-lg-none" id="toggle-sidebar"><i class="bi bi-list"></i></button>
-    <div id="mainContent" class="main-content">
+    <div class="main-content">
         
         <div class="page-header">
             <h2><i class="bi bi-graph-up-arrow me-2"></i>Forecasting & Analytics</h2>
@@ -119,15 +91,11 @@ requireSupplierPage($conn);
         <!-- Date filter + Summary Button -->
         <div class="filter-card">
             <h6><i class="bi bi-funnel"></i> Date range</h6>
-            <div class="analytics-date-grid">
-                <div class="date-range-panel" aria-label="Analytics date range">
-                    <div class="date-field"><label class="form-label" for="start-date"><i class="bi bi-calendar-event"></i> Start</label><div class="date-input-shell"><i class="bi bi-calendar3"></i><input type="date" class="form-control" id="start-date" aria-describedby="date-range-status"></div></div>
-                    <div class="date-range-separator" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
-                    <div class="date-field"><label class="form-label" for="end-date"><i class="bi bi-calendar-check"></i> End</label><div class="date-input-shell"><i class="bi bi-calendar3"></i><input type="date" class="form-control" id="end-date" aria-describedby="date-range-status"></div></div>
-                    <div class="date-range-status" id="date-range-status"><i class="bi bi-info-circle"></i><span id="date-range-label">Select a start and end date.</span></div>
-                </div>
-                <div><button class="btn btn-primary w-100" id="apply-filter"><i class="bi bi-check-circle"></i> Apply</button></div>
-                <div>
+            <div class="row align-items-end g-2">
+                <div class="col-md-4"><label class="form-label">Start</label><input type="date" class="form-control" id="start-date"></div>
+                <div class="col-md-4"><label class="form-label">End</label><input type="date" class="form-control" id="end-date"></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100" id="apply-filter"><i class="bi bi-check-circle"></i> Apply</button></div>
+                <div class="col-md-2">
                     <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#summaryModal">
                         <i class="bi bi-lightbulb-fill"></i> Summary
                     </button>
@@ -136,20 +104,22 @@ requireSupplierPage($conn);
         </div>
 
         <div class="filter-card mb-2" aria-label="Algorithm filter">
-            <div class="algo-filter-panel">
-                <div class="algo-filter-copy"><h6><i class="bi bi-funnel"></i> Algorithm</h6><p>Choose one view or show every analytics model.</p></div>
-                <div class="dropdown algo-dropdown">
-                        <button class="btn dropdown-toggle w-100" id="algoFilterBtn" data-bs-toggle="dropdown" aria-expanded="false"><span id="algoFilterLabel">All Algorithms</span></button>
+            <h6><i class="bi bi-funnel"></i> Algorithm</h6>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle w-100" id="algoFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">All Algorithms</button>
                         <ul class="dropdown-menu" id="algoFilterMenu" aria-labelledby="algoFilterBtn">
-                            <li><a class="dropdown-item algo-select active" href="#" data-algo="all"><i class="bi bi-grid-3x3-gap"></i>All Algorithms</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="demand"><i class="bi bi-graph-up"></i>Demand Forecast</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="top-medicines"><i class="bi bi-bar-chart"></i>Top 10 Medicines</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="supply-vs-demand"><i class="bi bi-arrow-left-right"></i>Supply vs Demand</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="random-forest"><i class="bi bi-cpu"></i>Random Forest</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="isolation-forest"><i class="bi bi-shield-exclamation"></i>Isolation Forest</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="prophet"><i class="bi bi-calendar3-week"></i>Facebook Prophet</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="low-stock"><i class="bi bi-exclamation-triangle"></i>Low-Stock Forecast</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="all">All Algorithms</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="demand">Demand Forecast</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="top-medicines">Top 10 Medicines</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="supply-vs-demand">Supply vs Demand</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="random-forest">Random Forest</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="isolation-forest">Isolation Forest</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="prophet">Facebook Prophet</a></li>
+                            <li><a class="dropdown-item algo-select" href="#" data-algo="low-stock">Low-Stock Forecast</a></li>
                         </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -165,8 +135,8 @@ requireSupplierPage($conn);
             </div>
         </div>
 
-        <div class="row algorithm-grid" id="algorithmGrid">
-            <div class="col-12 mb-4" data-algo-column>
+        <div class="row">
+            <div class="col-12 mb-4">
                 <div class="card algo-card" data-algorithm="demand">
                     <h5><i class="bi bi-graph-up"></i> Demand Forecast
                         <span id="demand-loading" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
@@ -176,7 +146,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-lg-6 mb-4" data-algo-column>
+            <div class="col-lg-6 mb-4">
                 <div class="card algo-card" data-algorithm="top-medicines">
                     <h5><i class="bi bi-bar-chart"></i> Top 10 Medicines</h5>
                     <div class="chart-container"><canvas id="topMedicinesChart"></canvas></div>
@@ -184,7 +154,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-lg-6 mb-4" data-algo-column>
+            <div class="col-lg-6 mb-4">
                 <div class="card algo-card" data-algorithm="supply-vs-demand">
                     <h5><i class="bi bi-arrow-left-right"></i> Supply vs Demand</h5>
                     <div class="chart-container"><canvas id="trendsChart"></canvas></div>
@@ -192,7 +162,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-12 mb-4" data-algo-column>
+            <div class="col-12 mb-4">
                 <div class="card algo-card" data-algorithm="random-forest">
                     <h5><i class="bi bi-cpu"></i> Forecasting Models for Retail Demand Planning</h5>
                     <p class="mb-3 small text-muted">
@@ -203,7 +173,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-12 mb-4" data-algo-column>
+            <div class="col-12 mb-4">
                 <div class="card algo-card" data-algorithm="isolation-forest">
                     <h5><i class="bi bi-shield-exclamation"></i> Detecting Inventory Anomalies Through Isolation Forest in Retail Stock Audits</h5>
                     <p class="mb-3 small text-muted">
@@ -214,7 +184,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-12 mb-4" data-algo-column>
+            <div class="col-12 mb-4">
                 <div class="card algo-card" data-algorithm="prophet">
                     <h5><i class="bi bi-calendar3-week"></i> Predicting Drug Expenditures Using Facebook Prophet in Pharmaceutical Installations</h5>
                     <p class="mb-3 small text-muted">
@@ -225,7 +195,7 @@ requireSupplierPage($conn);
                 </div>
             </div>
 
-            <div class="col-12 mb-4" data-algo-column>
+            <div class="col-12 mb-4">
                 <div class="card algo-card" data-algorithm="low-stock">
                     <h5><i class="bi bi-exclamation-triangle"></i> Low-Stock Forecast
                         <span class="badge bg-light text-dark border ms-2" id="low-stock-threshold-badge" style="font-weight:500;">&nbsp;</span>
@@ -304,7 +274,6 @@ requireSupplierPage($conn);
 
         const applyAlgorithmFilter = (selectedAlgo) => {
             const button = document.getElementById('algoFilterBtn');
-            const label = document.getElementById('algoFilterLabel');
             if (button) {
                 const labelMap = {
                     all: 'All Algorithms',
@@ -316,20 +285,14 @@ requireSupplierPage($conn);
                     'prophet': 'Facebook Prophet',
                     'low-stock': 'Low-Stock Forecast'
                 };
-                if (label) label.textContent = labelMap[selectedAlgo] || 'All Algorithms';
+                button.textContent = labelMap[selectedAlgo] || 'All Algorithms';
             }
 
             document.querySelectorAll('.algo-card').forEach((card) => {
                 const algo = card.dataset.algorithm;
                 const shouldShow = selectedAlgo === 'all' || algo === selectedAlgo;
                 card.style.display = shouldShow ? '' : 'none';
-                const column = card.closest('[data-algo-column]');
-                if (column) column.style.display = shouldShow ? '' : 'none';
             });
-            document.querySelectorAll('.algo-select').forEach((item) => {
-                item.classList.toggle('active', item.dataset.algo === selectedAlgo);
-            });
-            document.getElementById('algorithmGrid')?.classList.toggle('is-filtered', selectedAlgo !== 'all');
         };
 
         document.querySelectorAll('.algo-select').forEach((link) => {

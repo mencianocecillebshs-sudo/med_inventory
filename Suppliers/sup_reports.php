@@ -28,10 +28,10 @@ requireSupplierPage($conn);
         .main-content { 
             margin-left: 250px; 
             padding: 2rem;
-            height: 100%;
+            height: 200%;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Prevent main-content scrolling */
         }
         @media (max-width: 768px) { 
             .main-content { 
@@ -43,9 +43,9 @@ requireSupplierPage($conn);
         .page-header { 
             background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%); 
             color: white; 
-            padding: 1.5rem 2rem;
+            padding: 1rem 1.25rem;
             border-radius: 15px; 
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
             box-shadow: 0 8px 24px rgba(27, 94, 63, 0.2);
             flex-shrink: 0;
         }
@@ -74,7 +74,7 @@ requireSupplierPage($conn);
         }
         
         .card-body {
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -83,7 +83,7 @@ requireSupplierPage($conn);
             min-height: 0;
         }
 
-        .admin-table-card > .card-body {
+        .main-content > .card-body {
             display: grid;
             grid-template-rows: auto minmax(0, 1fr) auto;
             gap: 0;
@@ -91,7 +91,7 @@ requireSupplierPage($conn);
             flex: 1 1 auto;
         }
 
-        .admin-table-card > .card-body.medicine-report-view {
+        .main-content > .card-body.medicine-report-view {
             grid-template-rows: auto minmax(160px, 36vh) auto;
         }
 
@@ -113,23 +113,13 @@ requireSupplierPage($conn);
         .filter-section {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
             border-left: 4px solid #1b5e3f;
             flex-shrink: 0;
             position: relative;
             overflow: visible;
         }
-
-        .report-filter-grid { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.4fr) minmax(280px, 2fr); gap: 1rem; align-items: end; }
-        .report-filter-grid .form-label { margin-bottom: 0.4rem; }
-        .report-filter-grid .form-label i { color: #1b5e3f; }
-        .report-filter-grid .input-group .form-control { min-width: 0; }
-        .medicine-search-wrap .search-input-group { position: relative; }
-        .medicine-search-wrap .search-input-group i.bi-search { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; z-index: 2; }
-        .medicine-search-wrap .search-input-group .form-control { padding-left: 2.25rem; padding-right: 2.25rem; }
-        .medicine-search-wrap .search-clear-btn { position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: #94a3b8; padding: 0.25rem 0.4rem; line-height: 1; display: none; cursor: pointer; z-index: 2; }
-        .medicine-search-wrap .search-clear-btn:hover { color: #64748b; }
         
         .form-control, .form-select { 
             border-radius: 10px;
@@ -193,6 +183,42 @@ requireSupplierPage($conn);
             color: #1b5e3f;
         }
         
+        /* FIXED & UPGRADED GENERATE REPORT BUTTON */
+        #generate-report-btn {
+            background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(27, 94, 63, 0.3);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            min-height: 40px;
+            flex: 1 1 auto;
+        }
+        #generate-report-btn:hover {
+            background: linear-gradient(135deg, #0f3f28 0%, #1b5e3f 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(27, 94, 63, 0.4);
+        }
+        #generate-report-btn:active {
+            transform: translateY(-2px);
+        }
+        #generate-report-btn i {
+            font-size: 1.3rem;
+        }
+        #generate-report-btn .spinner-border-sm {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
         .table-container {
             flex: none;
             height: 100%;
@@ -233,11 +259,11 @@ requireSupplierPage($conn);
         .table tbody tr { transition: all 0.2s ease; }
         .table tbody tr:hover { background: #f7fafc; transform: translateX(2px); }
         @media (max-width: 768px) {
-            .admin-table-card > .card-body {
+            .main-content > .card-body {
                 grid-template-rows: auto auto minmax(0, 1fr) auto;
             }
 
-            .admin-table-card > .card-body.medicine-report-view {
+            .main-content > .card-body.medicine-report-view {
                 grid-template-rows: auto auto minmax(140px, 30vh) auto;
             }
 
@@ -258,16 +284,6 @@ requireSupplierPage($conn);
         .action-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-outline-secondary {
-            border: 2px solid #64748b;
-            color: #64748b;
-            background: transparent;
-        }
-        .btn-outline-secondary:hover {
-            background: #64748b;
-            color: white;
         }
 
         .download-dropdown .dropdown-toggle {
@@ -321,8 +337,8 @@ requireSupplierPage($conn);
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding: 0.75rem 1rem;
-            min-height: 3rem;
+            padding: 0.45rem 0;
+            min-height: 2.75rem;
         }
 
         .report-pagination-bar .pagination {
@@ -349,7 +365,6 @@ requireSupplierPage($conn);
         .report-toolbar {
             display: flex;
             align-items: stretch;
-            justify-content: flex-end;
             gap: 0.65rem;
         }
 
@@ -362,8 +377,6 @@ requireSupplierPage($conn);
         .report-toolbar .download-dropdown .dropdown-toggle {
             width: 100%;
         }
-
-        .report-toolbar > * { flex: 1 1 0; }
 
         .medicine-search-wrap {
             display: flex;
@@ -438,70 +451,69 @@ requireSupplierPage($conn);
             .table { font-size: 0.85rem; } 
             .page-header, .filter-section, .report-actions { display: none; } 
         }
-
-        /* Keep the report workspace visible while allowing the table to scroll. */
-        body { overflow-x: hidden; overflow-y: auto; }
-        .main-content { height: auto; max-height: 100vh; overflow: visible; }
-        .admin-table-card { height: auto; min-height: 0; overflow: visible; }
-        .admin-table-card > .card-body { height: auto; min-height: 0; overflow: visible; }
-        .admin-table-card .table-container { height: auto; max-height: calc(100vh - 285px); min-height: 180px; }
     </style>
 </head>
 <body>
     <?php include 'includes/nav.php'; ?>
-    <button class="btn d-lg-none" id="toggle-sidebar-mobile"><i class="bi bi-list"></i></button>
 
-    <div class="main-content admin-table-page">
+    <div class="main-content">
         <div class="page-header">
-            <h2><i class="bi bi-file-text me-2"></i> Reports</h2>
+            <h2><i class="bi bi-file-bar-graph-fill me-2"></i>Reports</h2>
+            <p class="mb-0 opacity-75">Generate and export inventory, sales transactions, and more.</p>
         </div>
 
-        <div class="card admin-table-card">
-            <div class="card-body">
+        <div class="card-body">
                 <div class="filter-section">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-3">
+                    <div class="row g-1 align-items-end">
+                        <div class="col-md-4">
                             <label class="form-label">
-                                <i class="bi bi-file-earmark-text"></i> Report Type
+                                <i class="bi bi-file-earmark-text"></i> Inventory Report
                             </label>
                             <select class="form-select" id="report-type">
                                 <option value="inventory">Inventory Report</option>
                                 <option value="transactions">Sales Transactions Report</option>
                             </select>
                         </div>
-                        <div class="col-md-3 medicine-search-wrap">
+                        <div class="col-md-5 medicine-search-wrap">
                             <label class="form-label">
-                                <i class="bi bi-funnel"></i> Filter by Item
+                                <i class="bi bi-capsule"></i> Search Medicine
                             </label>
-                            <div class="search-input-group">
-                                <i class="bi bi-search"></i>
-                                <input type="text" class="form-control" id="medicine-search" placeholder="Search item..." autocomplete="off" aria-label="Search medicine">
-                                <button type="button" class="search-clear-btn" id="clear-report-search" title="Clear">
-                                    <i class="bi bi-x-circle-fill"></i>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="medicine-search" placeholder="Enter medicine name..." autocomplete="off" aria-label="Search medicine">
+                                <button class="btn btn-primary" id="search-report-btn" type="button">
+                                    <i class="bi bi-search"></i> Search
                                 </button>
                             </div>
                             <div id="medicine-search-suggestions" class="medicine-search-suggestions" role="listbox" aria-label="Medicine suggestions"></div>
                             <input type="hidden" id="medicine-filter" value="">
                         </div>
-                        <div class="col-md-6 d-flex justify-content-end gap-2">
-                            <button class="btn btn-outline-secondary action-btn no-print" id="print-report-btn" type="button" onclick="printReport()">
-                                <i class="bi bi-printer me-1"></i> Print
-                            </button>
-                            <div class="btn-group download-dropdown">
-                                <button type="button" class="btn action-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-download me-1"></i> Download
+                        <div class="col-md-3">
+                            <div class="report-toolbar">
+                                <button class="btn" id="generate-report-btn" type="button" onclick="loadReport()">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span>Refresh</span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item pdf" href="#" onclick="generatePDF(); return false;"><i class="bi bi-file-earmark-pdf"></i> PDF (.pdf)</a></li>
-                                    <li><a class="dropdown-item excel" href="#" onclick="generateExcel(); return false;"><i class="bi bi-file-earmark-excel"></i> Excel (.xlsx)</a></li>
-                                    <li><a class="dropdown-item csv" href="#" onclick="generateCSV(); return false;"><i class="bi bi-filetype-csv"></i> CSV (.csv)</a></li>
-                                </ul>
+                                <div class="report-actions no-print">
+                                    <div class="btn-group download-dropdown">
+                                        <button class="btn btn-outline-primary dropdown-toggle action-btn" type="button" id="report-actions-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-download me-1"></i> Download
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="report-actions-toggle">
+                                            <li><button class="dropdown-item" type="button" onclick="previewReport()"><i class="bi bi-eye"></i> Preview</button></li>
+                                            <li><button class="dropdown-item" type="button" onclick="printReport()"><i class="bi bi-printer"></i> Print</button></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><button class="dropdown-item" type="button" onclick="generatePDF()"><i class="bi bi-file-earmark-pdf"></i> PDF (.pdf)</button></li>
+                                            <li><button class="dropdown-item" type="button" onclick="generateExcel()"><i class="bi bi-file-earmark-excel"></i> Excel (.xlsx)</button></li>
+                                            <li><button class="dropdown-item" type="button" onclick="generateCSV()"><i class="bi bi-filetype-csv"></i> CSV (.csv)</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="table-container admin-table-scroll">
+                <div class="table-container">
                     <table class="table table-hover mb-0">
                         <thead id="report-table-header"></thead>
                         <tbody id="report-table-body"></tbody>
@@ -515,7 +527,7 @@ requireSupplierPage($conn);
                     </nav>
                 </div>
             </div>
-        </div>
+            
     </div>
 
     <!-- Preview Modal -->

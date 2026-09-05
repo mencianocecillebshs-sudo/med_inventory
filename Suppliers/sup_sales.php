@@ -14,8 +14,8 @@ requireSupplierPage($conn);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f7fa; overflow-x: hidden; overflow-y: auto; }
-        .main-content { margin-left: 250px; padding: 2rem; transition: margin-left 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fa; overflow-x: hidden; }
+        .main-content { margin-left: 250px; padding: 2rem; transition: margin-left 0.3s ease; max-height: 100vh; overflow-y: auto; }
         @media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem; } }
         .card { border-radius: 15px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); background: #fff; border: none; }
         .table-container { max-height: calc(100vh - 280px); overflow-y: auto; }
@@ -67,10 +67,11 @@ requireSupplierPage($conn);
         #sale-medicine-container::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%); border-radius: 10px; }
         .input-group-text { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid #e2e8f0; font-weight: 600; color: #1b5e3f; }
         .page-header { background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%); color: white; padding: 1.5rem; border-radius: 15px; margin-bottom: 1.5rem; box-shadow: 0 8px 24px rgba(27, 94, 63, 0.2); }
-        .summary-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0; }
-        .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: 1.1rem; }
-        .summary-label { font-weight: 600; color: #475569; }
-        .summary-value { font-weight: 700; color: #1b5e3f; }
+        .page-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0; letter-spacing: 0.5px; }
+        .page-subtitle { font-size: 1rem; opacity: 0.8; margin-top: 0.3rem; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0; }
+        .summary-label { color: #1e293b; }
+        .summary-value { color: #1b5e3f; }
         .invoice-header { text-align: center; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; }
         .invoice-header h3 { font-weight: 700; color: #1b5e3f; margin-bottom: 0.5rem; }
         .invoice-details p { margin-bottom: 0.3rem; font-size: 0.9rem; }
@@ -84,69 +85,21 @@ requireSupplierPage($conn);
         .revenue-card.revenue-profit { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); }
         .revenue-card.revenue-filtered { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
         .revenue-card.revenue-count { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
-        .clickable-summary-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-        .clickable-summary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
-        .sales-toolbar { min-height: 42px; }
-        .sales-toolbar .form-select { width: 180px; }
-        .sales-toolbar .form-control { max-width: 300px; }
-        .actions-col { min-width: 120px; }
-        .admin-table-footer { padding: 0.75rem 1rem; }
-        .sales-filter-panel { background: #ffffff; border-left: 5px solid #1b5e3f; border-radius: 15px; padding: 1rem; box-shadow: 0 4px 16px rgba(0,0,0,.06); margin-bottom: 1rem; }
-        .sales-filter-grid { display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1.4fr) auto auto; gap: .85rem; align-items: end; }
-        .sales-filter-title { display: flex; align-items: center; gap: .45rem; color: #0f3f28; font-weight: 800; margin-bottom: .55rem; }
-        .sales-period-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; }
-        .sales-period-btn { min-height: 42px; border: 1px solid #b7e4ce; background: #f8fffb; color: #0f3f28; border-radius: 10px; font-weight: 800; transition: all .2s ease; }
-        .sales-period-btn:hover, .sales-period-btn:focus-visible { background: #dff8ec; color: #062f1d; border-color: #1b5e3f; }
-        .sales-period-btn.active { background: linear-gradient(135deg, #1b5e3f, #0f3f28); color: #ffffff; border-color: transparent; }
-        .sales-date-range { display: grid; grid-template-columns: 1fr auto 1fr; gap: .6rem; align-items: end; padding: .65rem; border: 1px solid #d1fae5; border-radius: 14px; background: linear-gradient(135deg, #f8fafc, #ecfdf5); }
-        .sales-date-field { min-width: 0; }
-        .sales-date-field .form-label { display: flex; align-items: center; gap: .35rem; margin-bottom: .35rem; color: #335045; font-size: .76rem; font-weight: 800; text-transform: uppercase; }
-        .sales-date-input { position: relative; }
-        .sales-date-input i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #1b5e3f; pointer-events: none; z-index: 1; }
-        .sales-date-input .form-control { min-height: 42px; padding-left: 2.35rem; border-color: #b7e4ce; }
-        .sales-date-separator { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: .2rem; border-radius: 999px; background: #1b5e3f; color: #fff; }
-        .sales-range-label { grid-column: 1 / -1; display: flex; align-items: center; gap: .4rem; min-height: 1rem; color: #64748b; font-size: .8rem; font-weight: 700; }
-        .sales-range-label i { color: #1b5e3f; }
-        .sales-filter-panel .action-btn { min-height: 42px; padding-inline: 1rem; }
-        @media (max-width: 1200px) { .sales-filter-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 768px) { .sales-filter-grid, .sales-date-range { grid-template-columns: 1fr; } .sales-period-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sales-date-separator { width: 100%; height: 28px; margin: 0; } .sales-date-separator i { transform: rotate(90deg); } }
         @media print { .no-print { display: none; } .modal-content { box-shadow: none; border: none; } .modal-body { padding: 0; } }
     </style>
 </head>
 <body>
     <?php include 'includes/nav.php'; ?>
 
-    <button class="btn d-lg-none" id="toggle-sidebar-mobile"><i class="bi bi-list"></i></button>
-    <div class="main-content admin-table-page">
-        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h2><i class="bi bi-receipt me-2"></i> Sales & Invoices</h2>
-        </div>
-
-        <div class="sales-filter-panel" aria-label="Sales date filters">
-            <div class="sales-filter-grid">
-                <div>
-                    <div class="sales-filter-title"><i class="bi bi-calendar-range"></i> Sales Period</div>
-                    <div class="sales-period-options" role="group" aria-label="Quick sales periods">
-                        <button type="button" class="sales-period-btn active" data-sales-period="all">All Time</button>
-                        <button type="button" class="sales-period-btn" data-sales-period="week">Weekly</button>
-                        <button type="button" class="sales-period-btn" data-sales-period="month">Monthly</button>
-                        <button type="button" class="sales-period-btn" data-sales-period="six-months">6 Months</button>
-                    </div>
-                </div>
-                <div class="sales-date-range">
-                    <div class="sales-date-field"><label class="form-label" for="sales-start-date"><i class="bi bi-calendar-event"></i> Start</label><div class="sales-date-input"><i class="bi bi-calendar3"></i><input type="date" class="form-control" id="sales-start-date" aria-describedby="sales-range-label"></div></div>
-                    <div class="sales-date-separator" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
-                    <div class="sales-date-field"><label class="form-label" for="sales-end-date"><i class="bi bi-calendar-check"></i> End</label><div class="sales-date-input"><i class="bi bi-calendar3"></i><input type="date" class="form-control" id="sales-end-date" aria-describedby="sales-range-label"></div></div>
-                    <div class="sales-range-label" id="sales-range-label"><i class="bi bi-info-circle"></i><span id="sales-range-text">Showing all supplier sales.</span></div>
-                </div>
-                <button type="button" class="btn btn-primary action-btn" id="apply-sales-range"><i class="bi bi-check-circle me-1"></i> Apply</button>
-                <button type="button" class="btn btn-outline-primary action-btn" id="reset-sales-range"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</button>
-            </div>
+    <div class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Sales & Invoices</h2>
+            <p class="page-subtitle">Manage your sales and view invoices</p>
         </div>
 
         <div class="row g-3 mb-3">
-            <div class="col-lg-3 col-md-6">
-                <div class="card revenue-card revenue-primary clickable-summary-card">
+            <div class="col-md-4">
+                <div class="card revenue-card revenue-primary">
                     <div class="card-body d-flex align-items-center justify-content-between">
                         <div>
                             <p class="revenue-label mb-1">Total Revenue</p>
@@ -157,11 +110,11 @@ requireSupplierPage($conn);
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card revenue-card revenue-profit clickable-summary-card">
+            <div class="col-md-4">
+                <div class="card revenue-card revenue-profit">
                     <div class="card-body d-flex align-items-center justify-content-between">
                         <div>
-                            <p class="revenue-label mb-1">Net Profit</p>
+                            <p class="revenue-label mb-1">Profit</p>
                             <p class="revenue-value" id="sales-total-profit">₱0.00</p>
                             <p class="revenue-meta mb-0">All-time profit</p>
                         </div>
@@ -169,19 +122,7 @@ requireSupplierPage($conn);
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card revenue-card revenue-filtered">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="revenue-label mb-1">Filtered Revenue</p>
-                            <p class="revenue-value" id="sales-filtered-revenue">₱0.00</p>
-                            <p class="revenue-meta mb-0">Matching current filters</p>
-                        </div>
-                        <i class="bi bi-funnel fs-1 text-primary opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-md-4">
                 <div class="card revenue-card revenue-count">
                     <div class="card-body d-flex align-items-center justify-content-between">
                         <div>
@@ -195,11 +136,26 @@ requireSupplierPage($conn);
             </div>
         </div>
 
-        <div class="d-flex mb-3 align-items-center gap-2 flex-wrap sales-toolbar">
-            <button type="button" class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#createSaleModal">
-                <i class="bi bi-plus-circle me-1"></i> New Sale
-            </button>
-            <select id="filter-payment" class="form-select">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="card-title mb-0">Sales List</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#createSaleModal">
+                            <i class="bi bi-cart-plus me-1"></i> New Sale
+                        </button>
+                        <button class="btn btn-outline-primary action-btn">
+                            <i class="bi bi-download me-1"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <input type="text" id="search-input" class="form-control" placeholder="Search by invoice or customer...">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filter-payment" class="form-select">
                             <option value="">All Payment Methods</option>
                             <option value="cash">Cash</option>
                             <option value="credit_card">Credit Card</option>
@@ -207,32 +163,31 @@ requireSupplierPage($conn);
                             <option value="gcash">GCash</option>
                             <option value="maya">Maya</option>
                             <option value="insurance">Insurance</option>
-            </select>
-            <input type="text" id="search-input" class="form-control" placeholder="Search invoices...">
-        </div>
-        <div class="card admin-table-card">
-            <div class="card-body p-0">
-                <div class="table-container admin-table-scroll">
-                    <table class="table table-hover mb-0">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table table-hover" id="sales-table">
                         <thead>
                             <tr>
                                 <th>Invoice #</th>
                                 <th>Customer</th>
                                 <th>Items</th>
-                                <th>Total</th>
                                 <th>Payment</th>
+                                <th>Total</th>
                                 <th>Cashier</th>
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="sales-table-body">
-                            <tr><td colspan="8" class="text-center">Loading sales...</td></tr>
+                            <tr><td colspan="8" class="text-center py-4">Loading sales...</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="admin-table-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <small id="sales-pagination-info" class="text-muted">Page 1 of 1 · 0 items</small>
+                <div class="sup-table-footer">
+                    <span class="sup-pagination-info" id="sales-pagination-info">Page 1 of 1 · 0 items</span>
                     <nav aria-label="Sales pagination">
                         <ul class="pagination justify-content-center mb-0" id="sales-pagination"></ul>
                     </nav>
@@ -280,7 +235,7 @@ requireSupplierPage($conn);
                         </div>
 
                         <button type="button" id="add-sale-medicine-row-btn" class="btn btn-outline-primary action-btn mb-3">
-                            <i class="bi bi-plus-circle me-1"></i> Add Item
+                            <i class="bi bi-plus-circle me-1"></i> Add Medicine
                         </button>
 
                         <div class="totals-section">
@@ -369,7 +324,7 @@ requireSupplierPage($conn);
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Items</th>
+                                <th>Medicine</th>
                                 <th>Qty</th>
                                 <th>Price</th>
                                 <th>Total</th>

@@ -72,25 +72,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchReportItems() {
         const res = await fetch(reportUrl(), { credentials: 'same-origin' });
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok) {
-            const message = data?.error || data?.message || 'Failed to load report';
-            throw new Error(message);
-        }
-        if (data && data.success === false) {
-            throw new Error(data.error || data.message || 'Failed to load report');
-        }
-
-        return data?.data || data?.medicines || [];
+        if (!res.ok) throw new Error('Failed to load report');
+        const data = await res.json();
+        return data.data || data.medicines || [];
     }
 
     function tableFor(type, items) {
         if (type === 'inventory') {
             return {
-                headers: ['Medicine Name', 'Barcode', 'Stock Level', 'Type', 'Description', 'Date Acquired', 'Expiry Date'],
+                headers: ['Item Name', 'Barcode', 'Stock Level', 'Category', 'Description', 'Date Acquired', 'Expiry Date'],
                 rows: items.map(item => [
-                    item['Medicine Name'] || item.name || '',
+                    item['Item Name'] || item['Medicine Name'] || item.name || '',
                     item.barcode || 'N/A',
                     `${item['Remaining Stock'] || item.quantity || 0} units`,
                     item['Type'] || item.type || item.item_type || item.category || 'N/A',
@@ -102,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (type === 'transactions') {
             return {
-                headers: ['Medicine Name', 'Total Dispensed (15 Days)', 'Date Span Start', 'Date Span End', 'Yearly Total'],
+                headers: ['Item Name', 'Total Dispensed (15 Days)', 'Date Span Start', 'Date Span End', 'Yearly Total'],
                 rows: items.map(item => [
-                    item['Medicine Name'] || 'Unknown',
+                    item['Item Name'] || item['Medicine Name'] || 'Unknown',
                     `${item['Total Dispensed (15 Days)'] || 0} units`,
                     item['Date Span Start'] || '-',
                     item['Date Span End'] || '-',

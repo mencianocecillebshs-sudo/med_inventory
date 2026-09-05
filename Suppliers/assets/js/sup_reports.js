@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fmtDateTime = (v) => window.SupUtils ? window.SupUtils.formatDateTime(v) : (v ? new Date(v).toLocaleString() : 'N/A');
     const medicineSearchInput = document.getElementById('medicine-search');
     const medicineFilterInput = document.getElementById('medicine-filter');
+    const searchReportBtn = document.getElementById('search-report-btn');
     const medicineSuggestionsBox = document.getElementById('medicine-search-suggestions');
 
     function escapeHtml(text) {
@@ -161,12 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const clearSearchBtn = document.getElementById('clear-report-search');
 
+    if (searchReportBtn) {
+        searchReportBtn.addEventListener('click', () => doMedicineSearch({ silent: false }));
+    }
+
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', () => {
             if (medicineSearchInput) {
                 medicineSearchInput.value = '';
             }
-            clearSearchBtn.style.display = 'none';
             setMedicineFilter(0, '');
             hideMedicineSuggestions();
             currentPage = 1;
@@ -178,17 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (medicineSearchInput) {
         medicineSearchInput.addEventListener('input', (event) => {
             const term = event.target.value.trim();
-            if (clearSearchBtn) clearSearchBtn.style.display = term ? 'block' : 'none';
             if (!term) {
                 setMedicineFilter(0, '');
                 hideMedicineSuggestions();
-                currentPage = 1;
-                suppressLoadToast = true;
-                loadReport();
                 return;
             }
-            clearTimeout(medicineSearchInput.searchTimer);
-            medicineSearchInput.searchTimer = setTimeout(() => doMedicineSearch({ silent: true }), 300);
+            fetchMedicineSuggestions(term);
         });
 
         medicineSearchInput.addEventListener('keydown', (event) => {
@@ -205,43 +204,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderReportPagination(paginationData) {
         const paginationEl = document.getElementById('pagination');
-        if (!paginationEl) return;
-        const totalPages = Math.max(1, Number(paginationData?.total_pages || 1));
-        const current = Math.max(1, Number(paginationData?.current_page || currentPage));
-        const totalItems = Number(paginationData?.total_items || 0);
-        const perPage = Number(paginationData?.items_per_page || window.SupUtils?.getRecordsPerPage() || window.RECORDS_PER_PAGE || 25);
-        const start = totalItems ? ((current - 1) * perPage) + 1 : 0;
-        const end = totalItems ? Math.min(current * perPage, totalItems) : 0;
-        const info = document.getElementById('pagination-info');
-        if (info) info.textContent = totalItems ? `Showing ${start}-${end} of ${totalItems}` : 'No records';
-        paginationEl.innerHTML = '';
-        if (totalPages <= 1) return;
-
-        const add = (label, page, disabled = false, active = false) => {
-            const item = document.createElement('li');
-            item.className = `page-item${disabled ? ' disabled' : ''}${active ? ' active' : ''}`;
-            item.innerHTML = `<a class="page-link" href="#">${label}</a>`;
-            item.addEventListener('click', event => {
-                event.preventDefault();
-                if (!disabled) {
-                    currentPage = page;
-                    loadReport();
+        if (window.SupUtils && paginationEl) {
+            const totalPages = Math.max(1, Number(paginationData?.total_pages || 1));
+            const current = Math.max(1, Number(paginationData?.current_page || currentPage));
+            if (totalPages === 1) {
+                const info = document.getElementById('pagination-info');
+                if (info) {
+                    const totalItems = Number(paginationData?.total_items || 0);
+                    info.textContent = totalItems > 0
+                        ? `Page 1 of 1 | Showing 1-${totalItems} of ${totalItems}`
+                        : 'Page 1 of 1 | Showing 0 of 0';
                 }
+                paginationEl.innerHTML = `
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    <li class="page-item active" aria-current="page"><span class="page-link">1</span></li>
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>`;
+                return;
+            }
+            window.SupUtils.renderPagination(paginationEl, paginationData, currentPage, (page) => {
+                currentPage = page;
+                loadReport();
             });
-            paginationEl.appendChild(item);
-        };
-
-        add('&laquo;', current - 1, current === 1);
-        for (let page = Math.max(1, current - 2); page <= Math.min(totalPages, current + 2); page++) {
-            add(page, page, false, page === current);
         }
-        add('&raquo;', current + 1, current === totalPages);
     }
 
     window.loadReport = function() {
         currentReportType = document.getElementById('report-type').value;
         currentMedicineId = parseInt(document.getElementById('medicine-filter').value) || 0;
-        const reportBody = document.querySelector('.admin-table-card > .card-body');
+        const reportBody = document.querySelector('.main-content > .card-body');
         if (reportBody) {
             reportBody.classList.toggle('medicine-report-view', currentReportType === 'inventory');
         }

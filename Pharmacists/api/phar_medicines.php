@@ -24,7 +24,7 @@ try {
             $stmt->execute();
             $result = $stmt->get_result();
             $data = $result->fetch_assoc();
-
+            
             if ($data) {
                 $data['is_low_stock'] = isLowStock($conn, $data['quantity']);
                 $data['is_critical_stock'] = isCriticalStock($conn, $data['quantity']);
@@ -32,7 +32,7 @@ try {
                 $data['stock_status_badge'] = getStockStatusBadge($conn, $data['quantity']);
                 $data['expiry_status_badge'] = getExpiryStatusBadge($conn, $data['expiry_date']);
                 $data['formatted_expiry_date'] = formatUserDate($conn, $data['expiry_date']);
-
+                
                 echo json_encode($data);
             } else {
                 http_response_code(404);
@@ -44,26 +44,47 @@ try {
             $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name';
             $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
             $item_type = isset($_GET['item_type']) ? trim($_GET['item_type']) : '';
-
+            $stock_status = isset($_GET['stock_status']) ? trim($_GET['stock_status']) : '';
+            $expiry_status = isset($_GET['expiry_status']) ? trim($_GET['expiry_status']) : '';
+            
             $limit = getRecordsPerPage($conn);
             if (isset($_GET['limit'])) {
                 $limit = max(10, min(1000, intval($_GET['limit'])));
             }
-
+            
             $offset = ($page - 1) * $limit;
             $searchParam = "%$search%";
-
+            
             $allowedSorts = ['name', 'quantity', 'expiry_date', 'created_at'];
             $orderBy = in_array($sort, $allowedSorts) ? "$sort ASC" : 'name ASC';
 
             $sql_count = "SELECT COUNT(*) FROM medicines WHERE (name LIKE ? OR barcode LIKE ? OR description LIKE ? OR category LIKE ?)";
             $sql_select = "SELECT id, name, barcode, quantity, category, item_type, description, expiry_date, created_at, selling_price FROM medicines WHERE (name LIKE ? OR barcode LIKE ? OR description LIKE ? OR category LIKE ?)";
-
+            
             if ($item_type !== '') {
                 $sql_count .= " AND item_type = ?";
                 $sql_select .= " AND item_type = ?";
             }
 
+            if ($stock_status === 'low') {
+                $lowThreshold = getLowStockThreshold($conn);
+                $sql_count .= " AND quantity <= $lowThreshold";
+                $sql_select .= " AND quantity <= $lowThreshold";
+            } elseif ($stock_status === 'critical') {
+                $criticalThreshold = getCriticalStockThreshold($conn);
+                $sql_count .= " AND quantity <= $criticalThreshold";
+                $sql_select .= " AND quantity <= $criticalThreshold";
+            }
+
+            if ($expiry_status === 'soon') {
+                $expiryDays = getExpiryAlertDays($conn);
+                $sql_count .= " AND expiry_date IS NOT NULL AND expiry_date >= CURDATE() AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL $expiryDays DAY)";
+                $sql_select .= " AND expiry_date IS NOT NULL AND expiry_date >= CURDATE() AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL $expiryDays DAY)";
+            } elseif ($expiry_status === 'expired') {
+                $sql_count .= " AND expiry_date IS NOT NULL AND expiry_date < CURDATE()";
+                $sql_select .= " AND expiry_date IS NOT NULL AND expiry_date < CURDATE()";
+            }
+            
             $sql_select .= " ORDER BY $orderBy LIMIT ? OFFSET ?";
 
             $countStmt = $conn->prepare($sql_count);
@@ -84,7 +105,7 @@ try {
             }
             $stmt->execute();
             $result = $stmt->get_result();
-
+            
             $medicines = [];
             while ($row = $result->fetch_assoc()) {
                 $row['is_low_stock'] = isLowStock($conn, $row['quantity']);
@@ -96,7 +117,7 @@ try {
                 $medicines[] = $row;
             }
             $stmt->close();
-
+            
             echo json_encode([
                 'success' => true,
                 'medicines' => $medicines,
@@ -106,7 +127,7 @@ try {
                 'total_pages' => ceil($total / $limit)
             ]);
         }
-
+        
     } elseif ($method === 'POST') {
         if (isset($_POST['_method']) && $_POST['_method'] === 'PUT') {
             $id = intval($_POST['edit_id']);
@@ -124,7 +145,7 @@ try {
                 echo json_encode(['status' => 'error', 'message' => 'Name and barcode required']);
                 exit();
             }
-
+            
             $stmt = $conn->prepare("UPDATE medicines SET name=?, barcode=?, quantity=?, category=?, item_type=?, description=?, expiry_date=?, selling_price=? WHERE id=?");
             $stmt->bind_param('ssisssssi', $name, $barcode, $quantity, $category, $item_type, $description, $expiry, $selling_price, $id);
             $success = $stmt->execute();
@@ -179,7 +200,7 @@ try {
                 echo json_encode(['status' => 'error', 'message' => 'Failed']);
             }
         }
-
+        
     } elseif ($method === 'DELETE') {
         if (!isset($_GET['id'])) {
             http_response_code(400);

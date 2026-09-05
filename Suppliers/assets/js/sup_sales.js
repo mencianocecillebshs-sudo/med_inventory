@@ -2,12 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const salesTableBody = document.getElementById('sales-table-body');
     const searchInput = document.getElementById('search-input');
     const filterPayment = document.getElementById('filter-payment');
-    const salesStartDate = document.getElementById('sales-start-date');
-    const salesEndDate = document.getElementById('sales-end-date');
-    const salesRangeText = document.getElementById('sales-range-text');
-    const salesPeriodBtns = Array.from(document.querySelectorAll('.sales-period-btn'));
-    const applySalesRangeBtn = document.getElementById('apply-sales-range');
-    const resetSalesRangeBtn = document.getElementById('reset-sales-range');
     const createSaleForm = document.getElementById('create-sale-form');
     const saleMedicineContainer = document.getElementById('sale-medicine-container');
     const addMedicineBtn = document.getElementById('add-sale-medicine-row-btn');
@@ -17,50 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let allMedicines = [];
     let currentOrderId = 0;
     let currentPage = 1;
-    let activeSalesPeriod = 'all';
     const U = window.SupUtils;
     const sym = () => U ? U.currencySymbol() : '₱';
     const fmt = (v) => U ? U.formatCurrency(v) : sym() + parseFloat(v || 0).toFixed(2);
-
-    function formatDisplayDate(value) {
-        if (!value) return '';
-        const date = new Date(`${value}T00:00:00`);
-        return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
-
-    function getPeriodLabel() {
-        return { all: 'All Time', week: 'Weekly', month: 'Monthly', 'six-months': '6 Months', custom: 'Custom Range' }[activeSalesPeriod] || 'Custom Range';
-    }
-
-    function updateSalesRangeUi() {
-        if (!salesStartDate || !salesEndDate) return;
-        if (salesStartDate.value) salesEndDate.min = salesStartDate.value; else salesEndDate.removeAttribute('min');
-        if (salesEndDate.value) salesStartDate.max = salesEndDate.value; else salesStartDate.removeAttribute('max');
-        if (salesRangeText) salesRangeText.textContent = salesStartDate.value && salesEndDate.value
-            ? `${getPeriodLabel()}: ${formatDisplayDate(salesStartDate.value)} to ${formatDisplayDate(salesEndDate.value)}`
-            : 'Showing all supplier sales.';
-    }
-
-    function toDateInputValue(date) {
-        const copy = new Date(date);
-        copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
-        return copy.toISOString().slice(0, 10);
-    }
-
-    function applyQuickSalesPeriod(period) {
-        const today = new Date();
-        const start = new Date(today);
-        if (period === 'week') start.setDate(today.getDate() - 6);
-        if (period === 'month') { start.setMonth(today.getMonth() - 1); start.setDate(start.getDate() + 1); }
-        if (period === 'six-months') { start.setMonth(today.getMonth() - 6); start.setDate(start.getDate() + 1); }
-        activeSalesPeriod = period;
-        salesPeriodBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.salesPeriod === period));
-        salesStartDate.value = period === 'all' ? '' : toDateInputValue(start);
-        salesEndDate.value = period === 'all' ? '' : toDateInputValue(today);
-        updateSalesRangeUi();
-        currentPage = 1;
-        loadSales();
-    }
 
     // Toast notification
     function showToast(message, type = 'success') {
@@ -131,10 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (search) params.set('search', search);
         if (payment) params.set('payment_method', payment);
-        if (salesStartDate?.value && salesEndDate?.value) {
-            params.set('start', salesStartDate.value);
-            params.set('end', salesEndDate.value);
-        }
 
         fetchJson('api/sup_sales.php?' + params.toString())
             .then(data => {
@@ -171,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><strong>${escapeHtml(sale.invoice_number)}</strong></td>
                     <td>${escapeHtml(customer)}</td>
                     <td><span class="badge bg-info">${sale.item_count || 0} items</span></td>
-                    <td><strong>${fmt(sale.total_amount || 0)}</strong></td>
                     <td>${paymentBadge}</td>
+                    <td><strong>${fmt(sale.total_amount || 0)}</strong></td>
                     <td>${escapeHtml(sale.cashier_name || 'Unknown')}</td>
                     <td class="date-info">${date}</td>
                     <td class="actions-col">
@@ -299,10 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="remove-row" onclick="removeMedicineRow(${medicineRowCounter})" style="display: none;"> <!-- Hidden for order fulfillment -->
                 <i class="bi bi-x"></i>
             </button>
-            <div class="medicine-row-header">Items #${rowNum} (Order Item)</div>
+            <div class="medicine-row-header">Medicine #${rowNum} (Order Item)</div>
             <div class="row">
                 <div class="col-md-6 mb-2">
-                    <label class="form-label">Items</label>
+                    <label class="form-label">Medicine</label>
                     <input type="text" class="form-control" value="${escapeHtml(item.medicine_name)}" readonly>
                     <input type="hidden" class="medicine-id" data-row="${medicineRowCounter}" value="${item.medicine_id}">
                 </div>
@@ -342,11 +291,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="remove-row" onclick="removeMedicineRow(${medicineRowCounter})">
                 <i class="bi bi-x"></i>
             </button>
-            <div class="medicine-row-header">Items #${medicineRowCounter}</div>
+            <div class="medicine-row-header">Medicine #${medicineRowCounter}</div>
             <div class="row">
                 <div class="col-md-6 mb-2">
-                    <label class="form-label">Items</label>
-                    <input type="text" class="form-control medicine-name" list="medicine-list" data-row="${medicineRowCounter}" required placeholder="Search items...">
+                    <label class="form-label">Medicine</label>
+                    <input type="text" class="form-control medicine-name" list="medicine-list" data-row="${medicineRowCounter}" required placeholder="Search medicine...">
                     <datalist id="medicine-list"></datalist>
                     <input type="hidden" class="medicine-id" data-row="${medicineRowCounter}">
                 </div>
@@ -620,12 +569,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    salesPeriodBtns.forEach(btn => btn.addEventListener('click', () => applyQuickSalesPeriod(btn.dataset.salesPeriod)));
-    salesStartDate?.addEventListener('change', () => { activeSalesPeriod = 'custom'; updateSalesRangeUi(); });
-    salesEndDate?.addEventListener('change', () => { activeSalesPeriod = 'custom'; updateSalesRangeUi(); });
-    applySalesRangeBtn?.addEventListener('click', () => { currentPage = 1; updateSalesRangeUi(); loadSales(); });
-    resetSalesRangeBtn?.addEventListener('click', () => applyQuickSalesPeriod('all'));
-
     // Add medicine button
     if (addMedicineBtn) {
         addMedicineBtn.addEventListener('click', () => {
@@ -672,7 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize
-    updateSalesRangeUi();
     loadSales();
     loadAcceptedOrders().then(() => {
         const urlParams = new URLSearchParams(window.location.search);

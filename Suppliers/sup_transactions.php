@@ -70,7 +70,7 @@ $redirectFromAccept = isset($_GET['from_accept']) && $_GET['from_accept'] === '1
                         <thead>
                             <tr>
                                 <th>Order ID</th>
-                                <th>Items</th>
+                                <th>Medicine</th>
                                 <th>Action</th>
                                 <th>Quantity Sold</th>
                                 <th>Total Sold</th>

@@ -517,7 +517,7 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="filter-section">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label"><i class="bi bi-file-earmark-text me-1"></i>Specifically Inventory Report</label>
+                            <label class="form-label"><i class="bi bi-file-earmark-text me-1"></i> Report Type</label>
                             <select class="form-select" id="report-type">
                                 <option value="inventory">Inventory Report</option>
                                 <option value="transactions">Transactions Report</option>
@@ -525,10 +525,10 @@ if (!isset($_SESSION['user_id'])) {
                             </select>
                         </div>
                         <div class="col-md-3 medicine-search-wrap">
-                            <label class="form-label"><i class="bi bi-funnel me-1"></i> Filter by Medicine</label>
+                            <label class="form-label"><i class="bi bi-funnel me-1"></i> Filter by Item</label>
                             <div class="search-input-group">
                                 <i class="bi bi-search"></i>
-                                <input type="text" class="form-control" id="medicine-search" placeholder="Search medicine..." autocomplete="off">
+                                <input type="text" class="form-control" id="medicine-search" placeholder="Search item..." autocomplete="off">
                                 <button type="button" class="search-clear-btn" id="medicine-search-clear" title="Clear">
                                     <i class="bi bi-x-circle-fill"></i>
                                 </button>
@@ -619,6 +619,6 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/phar_reports.js"></script>
+    <script src="assets/js/phar_reports.js?v=<?= filemtime(__DIR__ . '/assets/js/phar_reports.js') ?>"></script>
 </body>
 </html>

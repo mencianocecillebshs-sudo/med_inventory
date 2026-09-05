@@ -84,11 +84,30 @@ if (!isset($_SESSION['user_id'])) {
         .revenue-card .revenue-meta { font-size: .8rem; color: #94a3b8; }
         .revenue-card.revenue-primary { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
         .revenue-card.revenue-profit { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+        .revenue-card.revenue-filtered { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+        .revenue-card.revenue-count { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
         .clickable-summary-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
         .clickable-summary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         .clickable-summary-card:focus-visible { outline: 2px solid #1b5e3f; outline-offset: 2px; }
-        .revenue-card.revenue-filtered { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
-        .revenue-card.revenue-count { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+        .sales-filter-panel { background: #ffffff; border-left: 5px solid #1b5e3f; border-radius: 15px; padding: 1rem; box-shadow: 0 4px 16px rgba(0,0,0,.06); margin-bottom: 1rem; }
+        .sales-filter-grid { display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1.4fr) auto auto; gap: .85rem; align-items: end; }
+        .sales-filter-title { display: flex; align-items: center; gap: .45rem; color: #0f3f28; font-weight: 800; margin-bottom: .55rem; }
+        .sales-period-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; }
+        .sales-period-btn { min-height: 42px; border: 1px solid #b7e4ce; background: #f8fffb; color: #0f3f28; border-radius: 10px; font-weight: 800; transition: all .2s ease; }
+        .sales-period-btn:hover, .sales-period-btn:focus-visible { background: #dff8ec; color: #062f1d; border-color: #1b5e3f; box-shadow: 0 8px 20px rgba(15,63,40,.12); }
+        .sales-period-btn.active { background: linear-gradient(135deg, #1b5e3f, #0f3f28); color: #ffffff; border-color: transparent; box-shadow: 0 8px 18px rgba(27,94,63,.22); }
+        .sales-date-range { display: grid; grid-template-columns: 1fr auto 1fr; gap: .6rem; align-items: end; padding: .65rem; border: 1px solid #d1fae5; border-radius: 14px; background: linear-gradient(135deg, #f8fafc, #ecfdf5); }
+        .sales-date-field { min-width: 0; }
+        .sales-date-field .form-label { display: flex; align-items: center; gap: .35rem; margin-bottom: .35rem; color: #335045; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+        .sales-date-input { position: relative; }
+        .sales-date-input i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #1b5e3f; pointer-events: none; z-index: 1; }
+        .sales-date-input .form-control { min-height: 42px; padding-left: 2.35rem; background: #fff; color: #1e293b; border-color: #b7e4ce; box-shadow: 0 6px 16px rgba(15,63,40,.06); }
+        .sales-date-input .form-control:hover { background: #f8fffb; border-color: #1b5e3f; }
+        .sales-date-input input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .85; filter: sepia(70%) saturate(600%) hue-rotate(88deg) brightness(70%); }
+        .sales-date-separator { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: .2rem; border-radius: 999px; background: #1b5e3f; color: #fff; }
+        .sales-range-label { grid-column: 1 / -1; display: flex; align-items: center; gap: .4rem; min-height: 1rem; color: #64748b; font-size: .8rem; font-weight: 700; }
+        .sales-range-label i { color: #1b5e3f; }
+        .sales-filter-panel .action-btn { min-height: 42px; padding-inline: 1rem; }
         .stock-info { display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #64748b; }
         .invoice-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 3px solid #1b5e3f; }
         .invoice-details { margin-bottom: 2rem; }
@@ -98,6 +117,63 @@ if (!isset($_SESSION['user_id'])) {
             body { background: white; }
             .modal-body { max-height: none !important; overflow: visible !important; }
         }
+        @media (max-width: 1200px) {
+            .sales-filter-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sales-filter-grid, .sales-date-range { grid-template-columns: 1fr; }
+            .sales-period-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .sales-date-separator { width: 100%; height: 28px; margin: 0; }
+            .sales-date-separator i { transform: rotate(90deg); }
+        }
+        body.dark-mode .sales-filter-panel {
+            background: #111827 !important;
+            border-left-color: #2ecc71 !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,.45) !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .sales-filter-title,
+        body.dark-mode .sales-date-field .form-label { color: #a7f3d0 !important; }
+        body.dark-mode .sales-period-btn {
+            background: rgba(46,204,113,.12) !important;
+            border-color: rgba(46,204,113,.22) !important;
+            color: #6ee7b7 !important;
+        }
+        body.dark-mode .sales-period-btn:hover,
+        body.dark-mode .sales-period-btn:focus-visible {
+            background: #163828 !important;
+            border-color: #6ee7b7 !important;
+            color: #ffffff !important;
+        }
+        body.dark-mode .sales-period-btn.active {
+            background: linear-gradient(135deg, #2ecc71, #1b5e3f) !important;
+            color: #062f1d !important;
+        }
+        body.dark-mode .sales-date-range {
+            background: linear-gradient(135deg, rgba(46,204,113,.12), rgba(15,63,40,.12)), #0f172a !important;
+            border-color: rgba(46,204,113,.24) !important;
+        }
+        body.dark-mode .sales-date-input i,
+        body.dark-mode .sales-range-label i { color: #6ee7b7 !important; }
+        body.dark-mode .sales-date-input .form-control {
+            background: #111827 !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .sales-date-input .form-control:hover,
+        body.dark-mode .sales-date-input .form-control:focus {
+            background: #172033 !important;
+            color: #ffffff !important;
+            border-color: #6ee7b7 !important;
+        }
+        body.dark-mode .sales-date-input input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(88%) sepia(22%) saturate(798%) hue-rotate(92deg) brightness(98%);
+        }
+        body.dark-mode .sales-date-separator {
+            background: #2ecc71 !important;
+            color: #062f1d !important;
+        }
+        body.dark-mode .sales-range-label { color: #cbd5e1 !important; }
     </style>
 </head>
 <body>
@@ -107,11 +183,46 @@ if (!isset($_SESSION['user_id'])) {
     <div class="main-content admin-table-page">
         <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2><i class="bi bi-receipt me-2"></i> Sales & Invoices</h2>
-            <div class="d-flex align-items-center gap-2">
-                <label for="sales-month-filter" class="form-label mb-0 fw-bold" style="color:white;">Month:</label>
-                <select class="form-select" id="sales-month-filter" style="width:180px;">
-                    <option value="">All Time</option>
-                </select>
+        </div>
+
+        <div class="sales-filter-panel" aria-label="Sales date filters">
+            <div class="sales-filter-grid">
+                <div>
+                    <div class="sales-filter-title"><i class="bi bi-calendar-range"></i> Sales Period</div>
+                    <div class="sales-period-options" role="group" aria-label="Quick sales periods">
+                        <button type="button" class="sales-period-btn active" data-sales-period="all">All Time</button>
+                        <button type="button" class="sales-period-btn" data-sales-period="week">Weekly</button>
+                        <button type="button" class="sales-period-btn" data-sales-period="month">Monthly</button>
+                        <button type="button" class="sales-period-btn" data-sales-period="six-months">6 Months</button>
+                    </div>
+                </div>
+                <div class="sales-date-range">
+                    <div class="sales-date-field">
+                        <label class="form-label" for="sales-start-date"><i class="bi bi-calendar-event"></i> Start</label>
+                        <div class="sales-date-input">
+                            <i class="bi bi-calendar3"></i>
+                            <input type="date" class="form-control" id="sales-start-date" aria-describedby="sales-range-label">
+                        </div>
+                    </div>
+                    <div class="sales-date-separator" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+                    <div class="sales-date-field">
+                        <label class="form-label" for="sales-end-date"><i class="bi bi-calendar-check"></i> End</label>
+                        <div class="sales-date-input">
+                            <i class="bi bi-calendar3"></i>
+                            <input type="date" class="form-control" id="sales-end-date" aria-describedby="sales-range-label">
+                        </div>
+                    </div>
+                    <div class="sales-range-label" id="sales-range-label">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="sales-range-text">Showing all customer sales.</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary action-btn" id="apply-sales-range">
+                    <i class="bi bi-check-circle me-1"></i> Apply
+                </button>
+                <button type="button" class="btn btn-outline-primary action-btn" id="reset-sales-range">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                </button>
             </div>
         </div>
 
@@ -463,4 +574,5 @@ if (!isset($_SESSION['user_id'])) {
 
     <script src="assets/js/phar_sales.js?v=20260823-1"></script>
 </body>
+
 </html>

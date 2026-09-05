@@ -1,5 +1,5 @@
 <?php
-// Admin/api/phar_sales.php
+// Pharmacists/api/phar_sales.php
 // Full updated API with invoice_id support for walk-in and purchase sales
 
 ob_start();
@@ -56,11 +56,16 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
+foreach ([__DIR__ . '/../includes/inventory_helpers.php', __DIR__ . '/includes/inventory_helpers.php'] as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        break;
+    }
+}
 // Auto-reorder helper
 foreach ([__DIR__ . '/../includes/auto_reorder.php', __DIR__ . '/includes/auto_reorder.php', __DIR__ . '/../../includes/auto_reorder.php'] as $p) {
     if (file_exists($p)) { require_once $p; break; }
 }
-
 
 $response = ['success' => false, 'errors' => [], 'data' => null];
 
@@ -107,26 +112,12 @@ try {
                     $locked_purchase = null;
 
                     // ---- If this sale is closing out a pending purchase, lock it now and make
-                    // sure it's still pending. Without this, a purchase could be filled directly
-                    // through phar_purchases.php's old "Fill" action and then also completed here
-                    // (or the reverse), deducting stock twice for the same purchase. ----
+                    // sure it's still pending. This is the guard that was missing: previously a
+                    // purchase could be filled via the Purchases page's "Fill" button and then
+                    // *also* completed here (or vice-versa), deducting stock twice for the same
+                    // purchase. ----
                     if ($purchase_id) {
-                        $lock_stmt = $conn->prepare(
-                            "SELECT p.*, m.name AS medicine_name FROM purchases p
-                             JOIN medicines m ON p.medicine_id = m.id
-                             WHERE p.id = ? FOR UPDATE"
-                        );
-                        $lock_stmt->bind_param("i", $purchase_id);
-                        $lock_stmt->execute();
-                        $locked_purchase = $lock_stmt->get_result()->fetch_assoc();
-                        $lock_stmt->close();
-
-                        if (!$locked_purchase) {
-                            throw new Exception("Purchase #{$purchase_id} not found.");
-                        }
-                        if ($locked_purchase['status'] !== 'pending') {
-                            throw new Exception("Purchase #{$purchase_id} is already {$locked_purchase['status']} and can't be rung up again.");
-                        }
+                        $locked_purchase = lockPendingPurchaseOrFail($conn, $purchase_id);
 
                         // ---- The sale must match what the purchase actually asked for — one
                         // line item, same medicine, same quantity. Otherwise nothing stops a
@@ -253,14 +244,14 @@ try {
                         $stmt->execute();
                         $stmt->close();
 
-                        // Trigger auto-reorder if configured and log the outcome
+                        // Trigger auto-reorder if configured, and log the outcome so we can verify
                         if (function_exists('triggerAutoReorder')) {
                             try {
                                 $arResult = triggerAutoReorder($conn, $medicine_id, $cashier_id, 200);
                                 $arLog = __DIR__ . '/../../tmp/auto_reorder.log';
-                                @file_put_contents($arLog, "[".date('c')."] Phar sale auto-reorder check for medicine_id={$medicine_id}, cashier_id={$cashier_id}, result=" . var_export($arResult, true) . "\n", FILE_APPEND | LOCK_EX);
+                                @file_put_contents($arLog, "[".date('c')."] Admin sale triggered auto-reorder check for medicine_id={$medicine_id}, cashier_id={$cashier_id}, result=" . var_export($arResult, true) . "\n", FILE_APPEND | LOCK_EX);
                             } catch (Throwable $t) {
-                                @file_put_contents(__DIR__ . '/../../tmp/auto_reorder.log', "[".date('c')."] Phar sale auto-reorder exception for medicine_id={$medicine_id}: " . $t->getMessage() . "\n", FILE_APPEND | LOCK_EX);
+                                @file_put_contents(__DIR__ . '/../../tmp/auto_reorder.log', "[".date('c')."] Pharmacist sale auto-reorder exception for medicine_id={$medicine_id}: " . $t->getMessage() . "\n", FILE_APPEND | LOCK_EX);
                             }
                         }
 
@@ -282,6 +273,12 @@ try {
                         $stmt->close();
                     }
 
+                    // Shared with purchases.php so a sale that drops stock low
+                    // raises the same alert a "Fill" on the Purchases page would.
+                    foreach ($medicines as $med) {
+                        checkLowStockAndNotify($conn, (int)$med['medicine_id'], $cashier_id);
+                    }
+
                     // ---- Update purchase status if linked ----
                     if ($purchase_id) {
                         $stmt = $conn->prepare("UPDATE purchases 
@@ -290,40 +287,6 @@ try {
                         $stmt->bind_param("sddii", $payment_method, $amount_paid, $change_given, $cashier_id, $purchase_id);
                         $stmt->execute();
                         $stmt->close();
-
-                        // This mirrors the low-stock alert that used to fire from
-                        // phar_purchases.php's "Fill" action — still worth surfacing now that
-                        // filling only happens through checkout.
-                        $threshold = 10;
-                        try {
-                            $threshold_stmt = $conn->prepare("SELECT value FROM settings WHERE setting_key = 'low_stock_threshold' AND user_id = ? LIMIT 1");
-                            $threshold_stmt->bind_param("i", $cashier_id);
-                            $threshold_stmt->execute();
-                            $threshold_result = $threshold_stmt->get_result();
-                            if ($threshold_row = $threshold_result->fetch_assoc()) {
-                                $threshold = (int)$threshold_row['value'];
-                            }
-                        } catch (Exception $e) {
-                            error_log("Error getting threshold: " . $e->getMessage());
-                        }
-
-                        $stock_after_stmt = $conn->prepare("SELECT quantity, name FROM medicines WHERE id = ?");
-                        $stock_after_stmt->bind_param("i", $locked_purchase['medicine_id']);
-                        $stock_after_stmt->execute();
-                        $stock_after_row = $stock_after_stmt->get_result()->fetch_assoc();
-                        $stock_after_stmt->close();
-
-                        if ($stock_after_row && (int)$stock_after_row['quantity'] <= $threshold) {
-                            try {
-                                $notif_stmt = $conn->prepare("INSERT INTO notifications (user_id, message, type, `read`, created_at) VALUES (?, ?, 'shortage', 0, NOW())");
-                                $msg = "Low stock alert: {$stock_after_row['name']} ({$stock_after_row['quantity']} units left)";
-                                $notif_stmt->bind_param("is", $cashier_id, $msg);
-                                $notif_stmt->execute();
-                                $notif_stmt->close();
-                            } catch (Exception $notifErr) {
-                                error_log("Notification failed: " . $notifErr->getMessage());
-                            }
-                        }
                     }
 
                     $conn->commit();
@@ -432,7 +395,8 @@ try {
                                 ROUND((SELECT selling_price FROM supplier_sales WHERE medicine_id = medicines.id ORDER BY created_at DESC, id DESC LIMIT 1) * (1 + COALESCE(NULLIF(markup_percentage, 0), 20) / 100), 2),
                                 ROUND((SELECT unit_price FROM orders WHERE medicine_id = medicines.id AND status IN ('fulfilled', 'delivered') ORDER BY COALESCE(actual_delivery, order_date) DESC LIMIT 1) * (1 + COALESCE(NULLIF(markup_percentage, 0), 20) / 100), 2),
                                 ROUND((SELECT total_cost / NULLIF(quantity, 0) FROM purchases WHERE medicine_id = medicines.id AND status = 'filled' AND quantity > 0 ORDER BY purchase_date DESC, id DESC LIMIT 1) * (1 + COALESCE(NULLIF(markup_percentage, 0), 20) / 100), 2), 0) AS selling_price,
-                            COALESCE((SELECT unit_price FROM supplier_sales WHERE medicine_id = medicines.id ORDER BY created_at DESC, id DESC LIMIT 1), (SELECT total_cost / NULLIF(quantity, 0) FROM purchases WHERE medicine_id = medicines.id AND status = 'filled' AND quantity > 0 ORDER BY purchase_date DESC, id DESC LIMIT 1), 0) AS buying_price
+                            COALESCE((SELECT unit_price FROM supplier_sales WHERE medicine_id = medicines.id ORDER BY created_at DESC, id DESC LIMIT 1),
+                                     (SELECT total_cost / NULLIF(quantity, 0) FROM purchases WHERE medicine_id = medicines.id AND status = 'filled' AND quantity > 0 ORDER BY purchase_date DESC, id DESC LIMIT 1), 0) AS buying_price
                         FROM medicines WHERE (name LIKE ? OR barcode LIKE ?) AND quantity > 0 ORDER BY name ASC LIMIT 50");
                     $term = "%$search%";
                     $stmt->bind_param("ss", $term, $term);
@@ -491,7 +455,7 @@ try {
             // ----- Pending purchases -----
             elseif ($action === 'get_purchases') {
                 // medicine_id/name/quantity are included so the Sales page can pre-fill and
-                // lock the matching line item instead of leaving the pharmacist to retype it —
+                // lock the matching line item instead of leaving the cashier to retype it —
                 // that's what create_sale validates against, so this keeps the form from
                 // ever submitting something that wouldn't match.
                 $result = $conn->query("SELECT p.id, p.purchase_number, p.purchase_date,
@@ -513,23 +477,31 @@ try {
             // "Net Profit" stays internally consistent when filtered.
             $month = isset($_GET['month']) ? trim($_GET['month']) : '';
             $monthValid = (bool)preg_match('/^\d{4}-\d{2}$/', $month);
-            $monthClauseInvoices = $monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '';
+            $start = isset($_GET['start']) ? trim($_GET['start']) : '';
+            $end = isset($_GET['end']) ? trim($_GET['end']) : '';
+            $rangeValid = (bool)(preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end) && $start <= $end);
+            $dateClauseInvoices = $rangeValid
+                ? " AND DATE(si.created_at) BETWEEN ? AND ?"
+                : ($monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '');
 
             // ----- List all invoices (with item count) -----
             // order_id IS NULL excludes supplier-restocking invoices created by orders.php's
             // "Confirm Received" flow — those represent money paid OUT to a supplier, not
-            // revenue from a customer. Mirrors the same filter on the admin side; without it,
-            // this page's totals include restock invoices and don't match admin's numbers.
+            // revenue from a customer, and were previously showing up mixed into this list.
             $sql = "SELECT si.*, u.username as cashier_name, p.purchase_number,
                            (SELECT COUNT(*) FROM sales s WHERE s.invoice_id = si.id) as item_count,
                            (SELECT COALESCE(SUM(s.profit), 0) FROM sales s WHERE s.invoice_id = si.id) as invoice_profit
                     FROM sales_invoices si 
                     LEFT JOIN users u ON si.cashier_id = u.id 
                     LEFT JOIN purchases p ON si.purchase_id = p.id
-                    WHERE si.order_id IS NULL $monthClauseInvoices
+                    WHERE si.order_id IS NULL $dateClauseInvoices
                     ORDER BY si.created_at DESC";
             $stmt = $conn->prepare($sql);
-            if ($monthValid) $stmt->bind_param('s', $month);
+            if ($rangeValid) {
+                $stmt->bind_param('ss', $start, $end);
+            } elseif ($monthValid) {
+                $stmt->bind_param('s', $month);
+            }
             $stmt->execute();
             $result = $stmt->get_result();
             $invoices = [];
@@ -539,37 +511,53 @@ try {
             $summarySql = "
                 SELECT COALESCE(SUM(si.total_amount), 0) AS total_revenue, COUNT(*) AS sale_count
                 FROM sales_invoices si
-                WHERE si.order_id IS NULL $monthClauseInvoices
+                WHERE si.order_id IS NULL $dateClauseInvoices
             ";
             $summaryStmt = $conn->prepare($summarySql);
-            if ($monthValid) $summaryStmt->bind_param('s', $month);
+            if ($rangeValid) {
+                $summaryStmt->bind_param('ss', $start, $end);
+            } elseif ($monthValid) {
+                $summaryStmt->bind_param('s', $month);
+            }
             $summaryStmt->execute();
             $summaryRow = $summaryStmt->get_result()->fetch_assoc();
             $summaryStmt->close();
 
-            $monthClauseProfit = $monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '';
+            $dateClauseProfit = $rangeValid
+                ? " AND DATE(si.created_at) BETWEEN ? AND ?"
+                : ($monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '');
             $profitSql = "
                 SELECT COALESCE(SUM(s.profit), 0) AS total_profit
                 FROM sales s
                 JOIN sales_invoices si ON s.invoice_id = si.id
-                WHERE si.order_id IS NULL $monthClauseProfit
+                WHERE si.order_id IS NULL $dateClauseProfit
             ";
             $profitStmt = $conn->prepare($profitSql);
-            if ($monthValid) $profitStmt->bind_param('s', $month);
+            if ($rangeValid) {
+                $profitStmt->bind_param('ss', $start, $end);
+            } elseif ($monthValid) {
+                $profitStmt->bind_param('s', $month);
+            }
             $profitStmt->execute();
             $profitRow = $profitStmt->get_result()->fetch_assoc();
             $profitStmt->close();
 
             // Restocking purchases remain inventory until the stock is sold. Sale rows
             // already include their cost_price when calculating profit.
-            $monthClauseRestock = $monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '';
+            $dateClauseRestock = $rangeValid
+                ? " AND DATE(si.created_at) BETWEEN ? AND ?"
+                : ($monthValid ? " AND DATE_FORMAT(si.created_at, '%Y-%m') = ?" : '');
             $restockSql = "
                 SELECT COALESCE(SUM(si.total_amount), 0) AS total_restocking_cost
                 FROM sales_invoices si
-                WHERE si.order_id IS NOT NULL $monthClauseRestock
+                WHERE si.order_id IS NOT NULL $dateClauseRestock
             ";
             $restockStmt = $conn->prepare($restockSql);
-            if ($monthValid) $restockStmt->bind_param('s', $month);
+            if ($rangeValid) {
+                $restockStmt->bind_param('ss', $start, $end);
+            } elseif ($monthValid) {
+                $restockStmt->bind_param('s', $month);
+            }
             $restockStmt->execute();
             $restockRow = $restockStmt->get_result()->fetch_assoc();
             $restockStmt->close();
@@ -580,6 +568,7 @@ try {
             $response['success'] = true;
             $response['data']    = $invoices;
             $response['month']   = $monthValid ? $month : null;
+            $response['range']   = $rangeValid ? ['start' => $start, 'end' => $end] : null;
             $response['summary'] = [
                 'total_revenue'         => (float)($summaryRow['total_revenue'] ?? 0),
                 'sale_count'            => (int)($summaryRow['sale_count'] ?? 0),

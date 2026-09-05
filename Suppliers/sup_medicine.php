@@ -38,7 +38,7 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Supplier Medicines - Inventory System</title>
+    <title>My Supplier Items - Inventory System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
@@ -95,7 +95,7 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
         .stock-out { background: #fee2e2; color: #991b1b; }
 
         .info-badge { background: #dbeafe; color: #1b5e3f; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.8rem; }
-        .supplier-add-medicine-btn { min-height: 46px; width: 100%; }
+        .supplier-add-item-btn { min-height: 46px; width: 100%; }
 
         .form-control, .form-select {
             border-radius: 10px; border: 2px solid #e2e8f0;
@@ -110,40 +110,40 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
             border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             background: var(--modal-bg, #fff); color: var(--text-primary);
         }
-        #editMedicineModal .modal-dialog,
-        #addNewMedicineModal .modal-dialog { max-width: min(900px, calc(100vw - 2rem)); }
-        #editMedicineModal .modal-content,
-        #addNewMedicineModal .modal-content { border-radius: 20px; overflow: hidden; }
-        #editMedicineModal .modal-header,
-        #addNewMedicineModal .modal-header {
+        #editItemModal .modal-dialog,
+        #addNewItemModal .modal-dialog { max-width: min(900px, calc(100vw - 2rem)); }
+        #editItemModal .modal-content,
+        #addNewItemModal .modal-content { border-radius: 20px; overflow: hidden; }
+        #editItemModal .modal-header,
+        #addNewItemModal .modal-header {
             background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%) !important;
             color: #fff !important; padding: 1.35rem 1.75rem;
         }
-        #editMedicineModal .modal-title,
-        #addNewMedicineModal .modal-title { color: #fff; font-size: 1.55rem; font-weight: 800; }
-        #editMedicineModal .modal-body,
-        #addNewMedicineModal .modal-body { padding: 1.35rem 1.75rem; }
-        #editMedicineModal .mb-3,
-        #addNewMedicineModal .mb-3 { margin-bottom: 0.85rem !important; }
-        #editMedicineModal .form-label,
-        #addNewMedicineModal .form-label { font-size: 0.95rem; margin-bottom: 0.35rem; }
-        #editMedicineModal .form-control,
-        #editMedicineModal .type-display-input,
-        #addNewMedicineModal .form-control,
-        #addNewMedicineModal .type-display-input {
+        #editItemModal .modal-title,
+        #addNewItemModal .modal-title { color: #fff; font-size: 1.55rem; font-weight: 800; }
+        #editItemModal .modal-body,
+        #addNewItemModal .modal-body { padding: 1.35rem 1.75rem; }
+        #editItemModal .mb-3,
+        #addNewItemModal .mb-3 { margin-bottom: 0.85rem !important; }
+        #editItemModal .form-label,
+        #addNewItemModal .form-label { font-size: 0.95rem; margin-bottom: 0.35rem; }
+        #editItemModal .form-control,
+        #editItemModal .type-display-input,
+        #addNewItemModal .form-control,
+        #addNewItemModal .type-display-input {
             min-height: 46px; border-radius: 12px; font-size: 1rem; padding: 0.5rem 0.85rem;
         }
-        #editMedicineModal textarea.form-control,
-        #addNewMedicineModal textarea.form-control { min-height: 84px; }
-        #addNewMedicineModal .modal-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
-        #addNewMedicineModal .modal-form-grid .full-width { grid-column: 1 / -1; }
+        #editItemModal textarea.form-control,
+        #addNewItemModal textarea.form-control { min-height: 84px; }
+        #addNewItemModal .modal-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+        #addNewItemModal .modal-form-grid .full-width { grid-column: 1 / -1; }
         @media (max-width: 768px) {
-            #addNewMedicineModal .modal-form-grid { grid-template-columns: 1fr; }
+            #addNewItemModal .modal-form-grid { grid-template-columns: 1fr; }
         }
-        #editMedicineModal .btn-close,
-        #addNewMedicineModal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.75; }
-        #editMedicineModal .btn-close:hover,
-        #addNewMedicineModal .btn-close:hover { opacity: 1; }
+        #editItemModal .btn-close,
+        #addNewItemModal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.75; }
+        #editItemModal .btn-close:hover,
+        #addNewItemModal .btn-close:hover { opacity: 1; }
         .modal-header {
             border-bottom: none; padding: 1.5rem 2rem; border-radius: 20px 20px 0 0;
             background: var(--modal-header-bg, #fff); color: var(--modal-header-text, inherit);
@@ -195,17 +195,12 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
     <div class="main-content">
         <div class="page-header">
             <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h2><i class="bi bi-capsule-pill me-2"></i>My Supplier Medicines</h2>
+                <div class="col-md-12">
+                    <h2><i class="bi bi-capsule-pill me-2"></i>My Supplier Items</h2>
                     <p class="supplier-subtitle mb-0">
                         <i class="bi bi-shop me-1"></i><?php echo htmlspecialchars($supplier_name); ?> -
-                        Add, edit, and remove medicines saved under your supplier account
+                        Add, edit, and remove items saved under your supplier account
                     </p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <button class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#addNewMedicineModal">
-                        <i class="bi bi-plus-circle me-1"></i>Add Medicine
-                    </button>
                 </div>
             </div>
         </div>
@@ -217,45 +212,48 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                         <div class="col-lg-4 col-md-12">
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="search" placeholder="Search medicines...">
+                                <input type="text" class="form-control" id="search" placeholder="Search items...">
                             </div>
                         </div>
+                        <div class="col-lg-2 col-md-4">
+                            <select class="form-select" id="sort">
+                                <option value="name">Sort: Name</option>
+                                <option value="quantity">My Stock</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
                         <div class="col-lg-3 col-md-4">
-                            <select class="form-select" id="stock-filter">
-                                <option value="">My Medicines</option>
+                            <select class="form-select filter-select" id="item-filter" aria-label="Filter items">
+                                <option value="">All Items</option>
+                                <option value="medicine">Medicines</option>
+                                <option value="non-medicine">Other Products</option>
                                 <option value="in_stock">With Stock</option>
                                 <option value="out_of_stock">No Stock</option>
                             </select>
                         </div>
-                        <div class="col-lg-2 col-md-3">
-                            <select class="form-select" id="sort">
-                                <option value="name">Sort: Name</option>
-                                <option value="quantity">My Stock</option>
-                                <option value="type">Type</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-3">
-                            <button class="btn btn-primary action-btn supplier-add-medicine-btn w-100" data-bs-toggle="modal" data-bs-target="#addNewMedicineModal">
-                                <i class="bi bi-plus-circle me-1"></i>Add Medicine
+                        <div class="col-lg-2 col-md-4">
+                            <button class="btn btn-primary action-btn supplier-add-item-btn w-100" data-bs-toggle="modal" data-bs-target="#addNewItemModal">
+                                <i class="bi bi-plus-circle me-1"></i>Add Item
                             </button>
                         </div>
-                        <div class="col-lg-2 col-md-3">
-                            <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="toggle-medicine-columns">
+                        <div class="col-lg-1 col-md-4">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="toggle-item-columns">
                                 <i class="bi bi-arrows-angle-expand me-1"></i> Show All Columns
                             </button>
                         </div>
-                        <div class="col-lg-1 col-md-2 text-md-end">
-                            <span id="medicine-count" class="info-badge">Loading...</span>
+                        <div class="col-lg-12 text-lg-end">
+                            <span id="item-count" class="info-badge">Loading...</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="table-container sup-table-wrap" id="medicine-table-wrap">
+                <div class="table-container sup-table-wrap" id="item-table-wrap">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Medicine Name</th>
-                                <th class="col-detail">Type</th>
+                                <th>Item Name</th>
+                                <th class="col-detail">Category</th>
+                                <th>Type</th>
                                 <th class="col-detail">Description</th>
                                 <th>My Stock</th>
                                 <th>Unit Price</th>
@@ -264,13 +262,13 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="medicine-table">
+                        <tbody id="item-table">
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="9" class="text-center py-4">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <p class="mt-2 text-muted">Loading your medicines...</p>
+                                    <p class="mt-2 text-muted">Loading your items...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -279,7 +277,7 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
 
                 <div class="sup-table-footer">
                     <span class="sup-pagination-info" id="pagination-info">Page 1 of 1 · 0 items</span>
-                    <nav aria-label="Medicines pagination">
+                    <nav aria-label="Items pagination">
                         <ul class="pagination justify-content-center mb-0" id="pagination"></ul>
                     </nav>
                 </div>
@@ -287,21 +285,30 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
         </div>
 
         <!-- ══════════════════════════════════════════════ -->
-        <!-- Add New Medicine Modal                         -->
+        <!-- Add New Item Modal                              -->
         <!-- ══════════════════════════════════════════════ -->
-        <div class="modal fade" id="addNewMedicineModal" tabindex="-1" aria-labelledby="addNewMedicineModalLabel" aria-hidden="true">
+        <div class="modal fade" id="addNewItemModal" tabindex="-1" aria-labelledby="addNewItemModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addNewMedicineModalLabel">
-                            <i class="bi bi-plus-circle me-2"></i>Add Medicine
+                        <h5 class="modal-title" id="addNewItemModalLabel">
+                            <i class="bi bi-plus-circle me-2"></i>Add Item
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <form id="add-new-medicine-form" novalidate>
+                    <form id="add-new-item-form" novalidate>
                         <div class="modal-body">
                             <input type="hidden" name="action" value="create_medicine">
                             <div class="modal-form-grid">
+                                <div class="mb-3">
+                                    <label for="item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="item_type" name="item_type" required>
+                                        <option value="" selected disabled>Choose what to add</option>
+                                        <option value="medicine">Medicine</option>
+                                        <option value="non-medicine">Other Product</option>
+                                    </select>
+                                    <div class="invalid-feedback">Item type is required.</div>
+                                </div>
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="name" name="name" required>
@@ -318,24 +325,24 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                                     <div class="invalid-feedback">Quantity must be non-negative.</div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Type <span class="text-danger">*</span></label>
+                                    <label class="form-label">Category <span class="text-danger">*</span></label>
                                     <input type="hidden" id="type" name="type" required>
-                                    <div class="type-combobox" id="add-type-combobox">
+                                    <div class="type-combobox" id="add-category-combobox">
                                         <div class="type-input-wrapper">
                                             <input type="text" class="form-control type-display-input"
-                                                   id="add-type-display"
-                                                   placeholder="Select or type a new type..."
+                                                   id="add-category-display"
+                                                   placeholder="Select or type a category..."
                                                    autocomplete="off">
                                             <i class="bi bi-chevron-down type-chevron"></i>
                                         </div>
-                                        <div class="type-dropdown" id="add-type-dropdown">
+                                        <div class="type-dropdown" id="add-category-dropdown">
                                             <div class="type-dropdown-search">
-                                                <input type="text" id="add-type-search" placeholder="Search types...">
+                                                <input type="text" id="add-category-search" placeholder="Search categories...">
                                             </div>
-                                            <div class="type-dropdown-list" id="add-type-list"></div>
+                                            <div class="type-dropdown-list" id="add-category-list"></div>
                                         </div>
                                     </div>
-                                    <div class="invalid-feedback d-block" id="add-type-error" style="display:none!important"></div>
+                                    <div class="invalid-feedback d-block" id="add-category-error" style="display:none!important"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="expiry_date" class="form-label">Expiry Date <span class="text-danger">*</span></label>
@@ -367,7 +374,7 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary action-btn" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary action-btn">
-                                <i class="bi bi-save me-1"></i> Save Medicine
+                                <i class="bi bi-save me-1"></i> Save Item
                             </button>
                         </div>
                     </form>
@@ -386,9 +393,9 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                     <form id="add-supply-form" novalidate>
                         <div class="modal-body">
                             <input type="hidden" name="action" value="add_supply">
-                            <input type="hidden" id="supply_medicine_id" name="medicine_id">
+                            <input type="hidden" id="supply_item_id" name="medicine_id">
                             <div class="alert alert-light border mb-3">
-                                <strong>Medicine:</strong> <span id="supply_medicine_name"></span>
+                                <strong>Item:</strong> <span id="supply_item_name"></span>
                             </div>
                             <div class="mb-3">
                                 <label for="supply_quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
@@ -412,19 +419,28 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
             </div>
         </div>
 
-        <!-- Edit Medicine Modal -->
-        <div class="modal fade" id="editMedicineModal" tabindex="-1" aria-hidden="true">
+        <!-- Edit Item Modal -->
+        <div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Medicine</h5>
+                        <h5 class="modal-title">Edit Item</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="edit-medicine-form" novalidate>
+                        <form id="edit-item-form" novalidate>
                             <input type="hidden" name="action" value="update_medicine">
-                            <input type="hidden" id="edit_medicine_id" name="medicine_id">
+                            <input type="hidden" id="edit_item_id" name="medicine_id">
 
+                            <div class="mb-3">
+                                <label for="edit_item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="edit_item_type" name="item_type" required>
+                                    <option value="" selected disabled>Choose what to add</option>
+                                    <option value="medicine">Medicine</option>
+                                    <option value="non-medicine">Other Product</option>
+                                </select>
+                                <div class="invalid-feedback">Item type is required.</div>
+                            </div>
                             <div class="mb-3">
                                 <label for="edit_name" class="form-label">Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="edit_name" name="name" required>
@@ -441,24 +457,24 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                                 <div class="invalid-feedback">Quantity must be non-negative.</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Type <span class="text-danger">*</span></label>
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
                                 <input type="hidden" id="edit_type" name="type" required>
-                                <div class="type-combobox" id="edit-type-combobox">
+                                <div class="type-combobox" id="edit-category-combobox">
                                     <div class="type-input-wrapper">
                                         <input type="text" class="form-control type-display-input"
-                                               id="edit-type-display"
-                                               placeholder="Select or type a new type..."
+                                               id="edit-category-display"
+                                               placeholder="Select or type a category..."
                                                autocomplete="off">
                                         <i class="bi bi-chevron-down type-chevron"></i>
                                     </div>
-                                    <div class="type-dropdown" id="edit-type-dropdown">
+                                    <div class="type-dropdown" id="edit-category-dropdown">
                                         <div class="type-dropdown-search">
-                                            <input type="text" id="edit-type-search" placeholder="Search types...">
+                                            <input type="text" id="edit-category-search" placeholder="Search categories...">
                                         </div>
-                                        <div class="type-dropdown-list" id="edit-type-list"></div>
+                                        <div class="type-dropdown-list" id="edit-category-list"></div>
                                     </div>
                                 </div>
-                                <div class="invalid-feedback d-block" id="edit-type-error" style="display:none!important"></div>
+                                <div class="invalid-feedback d-block" id="edit-category-error" style="display:none!important"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="edit_description" class="form-label">Description <span class="text-danger">*</span></label>
@@ -476,7 +492,7 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
                             <input class="d-none" type="checkbox" id="edit_preferred" name="preferred" value="1" tabindex="-1">
                             <div class="d-flex justify-content-end">
                                 <button type="submit" class="btn btn-primary action-btn me-2">
-                                    <i class="bi bi-save me-1"></i> Update Medicine
+                                    <i class="bi bi-save me-1"></i> Update Item
                                 </button>
                                 <button type="button" class="btn btn-secondary action-btn" data-bs-dismiss="modal">Cancel</button>
                             </div>
@@ -487,24 +503,24 @@ $supplier_name = $supplier_profile['name'] ?? 'Supplier';
         </div>
 
         <!-- ══════════════════════════════════════════════ -->
-        <!-- Remove Medicine Modal                          -->
+        <!-- Remove Item Modal                               -->
         <!-- ══════════════════════════════════════════════ -->
-        <div class="modal fade" id="deleteMedicineModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="deleteItemModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Remove Medicine</h5>
+                        <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Remove Item</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-2">Remove <strong id="delete_medicine_name"></strong> from your inventory?</p>
+                        <p class="mb-2">Remove <strong id="delete_item_name"></strong> from your inventory?</p>
                         <div class="alert alert-warning mb-0">
                             <i class="bi bi-exclamation-triangle me-2"></i>This removes your supplier stock and pricing. It does not delete admin order history.
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary action-btn" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary action-btn" id="confirm-delete-medicine-btn">
+                        <button type="button" class="btn btn-primary action-btn" id="confirm-delete-item-btn">
                             <i class="bi bi-trash me-1"></i> Remove
                         </button>
                     </div>

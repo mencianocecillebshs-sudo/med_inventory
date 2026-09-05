@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.getElementById('medicine-table');
     const searchInput = document.getElementById('search');
     const sortSelect = document.getElementById('sort');
+    const itemTypeSelect = document.getElementById('filter-item-type');
     const itemsPerPageSelect = document.getElementById('items-per-page');
     const addForm = document.getElementById('add-medicine-form');
     const editForm = document.getElementById('edit-medicine-form');
@@ -14,7 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentPage = 1;
     let itemsPerPage = (window.RECORDS_PER_PAGE || 10);
-    let allMedicineTypes = [];
+    let allMedicineCategories = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const dashboardStockStatus = urlParams.get('stock_status') || '';
+    const dashboardExpiryStatus = urlParams.get('expiry_status') || '';
 
     if (itemsPerPageSelect) {
         itemsPerPage = parseInt(itemsPerPageSelect.value) || itemsPerPage;
@@ -49,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
-    // ── Type Combobox ────────────────────────────────────────────────
-    function initTypeCombobox(comboboxId, displayInputId, hiddenInputId, searchInputId, listId, errorId) {
+    // ── Category Combobox ────────────────────────────────────────────────
+    function initCategoryCombobox(comboboxId, displayInputId, hiddenInputId, searchInputId, listId, errorId) {
         const combobox  = document.getElementById(comboboxId);
         const display   = document.getElementById(displayInputId);
         const hidden    = document.getElementById(hiddenInputId);
@@ -64,33 +68,32 @@ document.addEventListener('DOMContentLoaded', function () {
             list.innerHTML = '';
             const lower    = (filter || '').toLowerCase().trim();
             const filtered = lower
-                ? allMedicineTypes.filter(t => t.toLowerCase().includes(lower))
-                : [...allMedicineTypes];
+                ? allMedicineCategories.filter(t => t.toLowerCase().includes(lower))
+                : [...allMedicineCategories];
 
             if (filtered.length === 0 && !lower) {
-                list.innerHTML = '<div class="type-dropdown-empty">No types yet. Type below to create one.</div>';
+                list.innerHTML = '<div class="category-dropdown-empty">No categories yet. Type below to create one.</div>';
             } else {
-                filtered.forEach(type => {
+                filtered.forEach(category => {
                     const item = document.createElement('div');
-                    item.className = 'type-dropdown-item' + (hidden.value === type ? ' active' : '');
-                    item.innerHTML = `<span class="type-badge"><i class="bi bi-tag-fill me-1"></i>${type}</span>`;
-                    // Use click instead of mousedown to avoid conflict
-                    item.addEventListener('click', () => selectType(type));
+                    item.className = 'category-dropdown-item' + (hidden.value === category ? ' active' : '');
+                    item.innerHTML = `<span class="category-badge"><i class="bi bi-tag-fill me-1"></i>${category}</span>`;
+                    item.addEventListener('click', () => selectCategory(category));
                     list.appendChild(item);
                 });
             }
 
             // "Create new" row — only when typed value doesn't match existing
-            if (lower && !allMedicineTypes.some(t => t.toLowerCase() === lower)) {
+            if (lower && !allMedicineCategories.some(t => t.toLowerCase() === lower)) {
                 const newItem = document.createElement('div');
-                newItem.className = 'type-dropdown-item new-type-item';
+                newItem.className = 'category-dropdown-item new-category-item';
                 newItem.innerHTML = `<i class="bi bi-plus-circle-fill"></i> Create "<strong>${filter}</strong>"`;
-                newItem.addEventListener('click', () => selectType(filter));
+                newItem.addEventListener('click', () => selectCategory(filter));
                 list.appendChild(newItem);
             }
         }
 
-        function selectType(value) {
+        function selectCategory(value) {
             display.value = value;
             hidden.value  = value;
             showError(false);
@@ -104,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
             searchInp.value = '';
             renderList('');
             // Scroll active item into view
-            const active = list.querySelector('.type-dropdown-item.active');
+            const active = list.querySelector('.category-dropdown-item.active');
             if (active) active.scrollIntoView({ block: 'nearest' });
         }
 
@@ -114,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             combobox.classList.remove('open');
         }
 
-        function showError(show, msg = 'Type is required.') {
+        function showError(show, msg = 'Category is required.') {
             if (show) {
                 display.classList.add('is-invalid');
                 errorEl.textContent = msg;
@@ -125,13 +128,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Click on the display input — toggle dropdown
         display.addEventListener('click', (e) => {
             e.stopPropagation();
             isOpen ? closeDropdown() : openDropdown();
         });
 
-        // Typing in display input — filter + set value
         display.addEventListener('input', () => {
             hidden.value = display.value;
             showError(false);
@@ -139,23 +140,19 @@ document.addEventListener('DOMContentLoaded', function () {
             renderList(display.value);
         });
 
-        // Typing inside the dropdown search box
         searchInp.addEventListener('input', (e) => {
             e.stopPropagation();
             renderList(searchInp.value);
         });
 
-        // Clicking inside the dropdown itself must not close it
-        combobox.querySelector('.type-dropdown').addEventListener('click', (e) => {
+        combobox.querySelector('.category-dropdown').addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
-        // Close on outside click
         document.addEventListener('click', (e) => {
             if (!combobox.contains(e.target)) closeDropdown();
         });
 
-        // Public API
         combobox._setValue = function (val) {
             display.value = val || '';
             hidden.value  = val || '';
@@ -177,31 +174,32 @@ document.addEventListener('DOMContentLoaded', function () {
         return combobox;
     }
 
-    const addCombobox  = initTypeCombobox('add-type-combobox',  'add-type-display',  'type',      'add-type-search',  'add-type-list',  'add-type-error');
-    const editCombobox = initTypeCombobox('edit-type-combobox', 'edit-type-display', 'edit_type', 'edit-type-search', 'edit-type-list', 'edit-type-error');
+    const addCombobox  = initCategoryCombobox('add-category-combobox',  'add-category-display',  'category',      'add-category-search',  'add-category-list',  'add-category-error');
+    const editCombobox = initCategoryCombobox('edit-category-combobox', 'edit-category-display', 'edit_category', 'edit-category-search', 'edit-category-list', 'edit-category-error');
 
-    // ── Load Types ───────────────────────────────────────────────────
-    function loadMedicineTypes() {
+    // ── Load Categories ───────────────────────────────────────────────
+    function loadMedicineCategories() {
         fetch('api/phar_medicines.php?limit=1000&page=1')
             .then(r => r.json())
             .then(data => {
                 if (!data.medicines) return;
-                allMedicineTypes = [...new Set(
+                allMedicineCategories = [...new Set(
                     data.medicines.map(m => (m.category || '').trim()).filter(Boolean)
                 )].sort();
             })
-            .catch(err => console.error('Failed to load medicine types:', err));
+            .catch(err => console.error('Failed to load inventory item categories:', err));
     }
 
-    // ── Load Medicines Table ─────────────────────────────────────────
-    const itemTypeSelect = document.getElementById('filter-item-type');
-
+    // ── Load Inventory Items Table ───────────────────────────────────
     function loadMedicines(page = 1) {
         loading.style.display = 'block';
         const search = searchInput.value;
         const sort   = sortSelect.value;
         const item_type = itemTypeSelect ? itemTypeSelect.value : '';
-        fetch(`api/phar_medicines.php?search=${encodeURIComponent(search)}&sort=${sort}&page=${page}&limit=${itemsPerPage}&item_type=${item_type}`)
+        let url = `api/phar_medicines.php?search=${encodeURIComponent(search)}&sort=${sort}&page=${page}&limit=${itemsPerPage}&item_type=${item_type}`;
+        if (dashboardStockStatus) url += `&stock_status=${encodeURIComponent(dashboardStockStatus)}`;
+        if (dashboardExpiryStatus) url += `&expiry_status=${encodeURIComponent(dashboardExpiryStatus)}`;
+        fetch(url)
             .then(r => r.json())
             .then(data => {
                 tableBody.innerHTML      = '';
@@ -210,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data && data.medicines && Array.isArray(data.medicines)) {
                     data.medicines.forEach(medicine => {
                         const row = document.createElement('tr');
-                        const capItemType = (medicine.item_type === 'non-medicine') ? 'Non-Medicine' : 'Medicine';
+                        const capItemType = (medicine.item_type === 'non-medicine') ? 'Other Product' : 'Medicine';
                         row.innerHTML = `
                             <td>${medicine.name || 'N/A'}</td>
                             <td>${medicine.barcode || 'N/A'}</td>
@@ -231,18 +229,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (pageInfo) {
                         const start = data.total ? ((page - 1) * itemsPerPage) + 1 : 0;
                         const end   = Math.min(page * itemsPerPage, data.total || 0);
-                        pageInfo.textContent = data.total ? `Showing ${start}–${end} of ${data.total}` : 'No medicines';
+                        pageInfo.textContent = data.total ? `Showing ${start}–${end} of ${data.total}` : 'No items';
                     }
                     renderPagination(totalPages, page);
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No medicines found.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No inventory items found.</td></tr>';
                     if (pageInfo) pageInfo.textContent = '';
                 }
                 loading.style.display = 'none';
             })
             .catch(() => {
                 loading.style.display = 'none';
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load medicines. Please try again.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load inventory items. Please try again.</td></tr>';
             });
     }
 
@@ -279,8 +277,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Add Form ─────────────────────────────────────────────────────
     addForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const typeValid = addCombobox._validate();
-        if (!addForm.checkValidity() || !typeValid) {
+        const categoryValid = addCombobox._validate();
+        const itemTypeValid = validateAddItemType();
+        if (!addForm.checkValidity() || !categoryValid || !itemTypeValid) {
             addForm.classList.add('was-validated');
             return;
         }
@@ -294,12 +293,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     addForm.reset();
                     addCombobox._reset();
                     loadMedicines(currentPage);
-                    loadMedicineTypes();
+                    loadMedicineCategories();
                 } else {
-                    alert(`Error adding medicine: ${data.message || 'Unknown error'}`);
+                    alert(`Error adding item: ${data.message || 'Unknown error'}`);
                 }
             })
-            .catch(() => alert('Error adding medicine'));
+            .catch(() => alert('Error adding item'));
     });
 
     document.getElementById('addMedicineModal').addEventListener('hidden.bs.modal', () => {
@@ -311,8 +310,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Edit Form ────────────────────────────────────────────────────
     editForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const typeValid = editCombobox._validate();
-        if (!editForm.checkValidity() || !typeValid) {
+        const categoryValid = editCombobox._validate();
+        if (!editForm.checkValidity() || !categoryValid) {
             editForm.classList.add('was-validated');
             return;
         }
@@ -327,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     editForm.reset();
                     editCombobox._reset();
                     loadMedicines(currentPage);
-                    loadMedicineTypes();
+                    loadMedicineCategories();
                 } else {
-                    alert(`Error updating medicine: ${data.message || 'Unknown error'}`);
+                    alert(`Error updating item: ${data.message || 'Unknown error'}`);
                 }
             })
-            .catch(() => alert('Error updating medicine'));
+            .catch(() => alert('Error updating item'));
     });
 
     document.getElementById('editMedicineModal').addEventListener('hidden.bs.modal', () => {
@@ -360,15 +359,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (document.getElementById('edit_item_type')) {
                             document.getElementById('edit_item_type').value = data.item_type || 'medicine';
                         }
-                        // Pre-fill the type combobox with the existing value
                         editCombobox._setValue(data.category || '');
                         setEditModalMode(data.item_type === 'non-medicine' ? 'non-medicine' : 'medicine');
                         bootstrap.Modal.getOrCreateInstance(document.getElementById('editMedicineModal')).show();
                     } else {
-                        alert(`Error loading medicine: ${data.message || 'Not found'}`);
+                        alert(`Error loading item: ${data.message || 'Not found'}`);
                     }
                 })
-                .catch(() => alert('Error loading medicine data'));
+                .catch(() => alert('Error loading item data'));
 
         } else if (btn.classList.contains('delete-btn')) {
             pendingDeleteId = btn.dataset.id;
@@ -392,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert(`Error deleting: ${data.message || 'Unknown error'}`);
                 }
             })
-            .catch(() => alert('Error deleting medicine'))
+            .catch(() => alert('Error deleting item'))
             .finally(() => {
                 confirmDeleteBtn.disabled = false;
                 confirmDeleteBtn.innerHTML = orig;
@@ -400,14 +398,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    // ── Search / Sort ────────────────────────────────────────────────
+    // ── Search / Sort / Filter ───────────────────────────────────────
     searchInput.addEventListener('input', () => { currentPage = 1; loadMedicines(currentPage); });
     sortSelect.addEventListener('change', () => { currentPage = 1; loadMedicines(currentPage); });
     if (itemTypeSelect) {
         itemTypeSelect.addEventListener('change', () => { currentPage = 1; loadMedicines(currentPage); });
     }
 
-    // ── Item Type Tabs (switch between Medicines / Other Products views) ──
+    // ── Item Type Tabs (switch between Medicine / Other Products views) ──
     const itemTypeTabs = document.querySelectorAll('#item-type-tabs .item-type-tab');
     itemTypeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -421,53 +419,96 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ── Add Medicine / Add Other Product buttons ──────────────────────
+    // ── Add Item modal mode ───────────────────────────────────────────
     const addMedicineModalEl = document.getElementById('addMedicineModal');
     const addMedicineModalTitle = addMedicineModalEl ? addMedicineModalEl.querySelector('.modal-title') : null;
     const addItemTypeSelect = document.getElementById('item_type');
-    const addOtherProductBtn = document.getElementById('add-other-product-btn');
-    const addMedicineBtn = document.getElementById('add-medicine-btn');
+    const addItemTypePicker = document.getElementById('add-item-type-picker');
+    const addItemTypeTrigger = document.getElementById('add-item-type-trigger');
+    const addItemTypeText = document.getElementById('add-item-type-text');
+    const addCategoryDisplay = document.getElementById('add-category-display');
     const addSubmitBtn = document.getElementById('add-medicine-submit-btn');
+    const itemTypeLabels = {
+        medicine: 'Medicine',
+        'non-medicine': 'Other Product'
+    };
 
     function setAddModalMode(mode) {
-        if (addItemTypeSelect) addItemTypeSelect.value = mode;
+        if (addItemTypeSelect) addItemTypeSelect.value = mode || '';
+        if (addItemTypeText) addItemTypeText.textContent = itemTypeLabels[mode] || 'Choose what to add';
+        if (addItemTypeTrigger) {
+            addItemTypeTrigger.classList.toggle('has-value', !!mode);
+            addItemTypeTrigger.classList.remove('is-invalid');
+        }
         if (addMedicineModalTitle) {
-            addMedicineModalTitle.textContent = mode === 'non-medicine' ? 'Add Other Product' : 'Add Medicine';
+            addMedicineModalTitle.textContent = 'Add Inventory Item';
         }
         if (addSubmitBtn) {
-            addSubmitBtn.innerHTML = mode === 'non-medicine'
-                ? '<i class="bi bi-save me-1"></i> Save Other Products'
-                : '<i class="bi bi-save me-1"></i> Save Medicine';
+            addSubmitBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Item';
+        }
+        if (addCategoryDisplay) {
+            addCategoryDisplay.placeholder = 'Select or type a category...';
         }
     }
 
-    addOtherProductBtn?.addEventListener('click', () => setAddModalMode('non-medicine'));
-    addMedicineBtn?.addEventListener('click', () => setAddModalMode('medicine'));
+    function closeAddItemTypeMenu() {
+        addItemTypePicker?.classList.remove('open');
+        addItemTypeTrigger?.setAttribute('aria-expanded', 'false');
+    }
 
-    addMedicineModalEl?.addEventListener('hidden.bs.modal', () => {
-        setAddModalMode('medicine');
+    function validateAddItemType() {
+        const isValid = !!addItemTypeSelect?.value;
+        addItemTypeTrigger?.classList.toggle('is-invalid', !isValid);
+        return isValid;
+    }
+
+    addItemTypeTrigger?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = addItemTypePicker?.classList.toggle('open');
+        addItemTypeTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
-    // ── Edit Medicine / Edit Other Product modal mode ──────────────────
+    addItemTypePicker?.querySelectorAll('.item-type-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setAddModalMode(option.dataset.value || '');
+            closeAddItemTypeMenu();
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (addItemTypePicker && !addItemTypePicker.contains(e.target)) closeAddItemTypeMenu();
+    });
+
+    document.getElementById('addMedicineModal').addEventListener('hidden.bs.modal', () => {
+        setAddModalMode('');
+        closeAddItemTypeMenu();
+    });
+
+    // ── Edit Inventory Item modal mode ────────────────────────────────
     const editMedicineModalTitle = document.getElementById('edit-medicine-modal-title');
     const editSubmitBtn = document.getElementById('edit-medicine-submit-btn');
+    const editCategoryDisplay = document.getElementById('edit-category-display');
 
     function setEditModalMode(mode) {
         if (editMedicineModalTitle) {
-            editMedicineModalTitle.textContent = mode === 'non-medicine' ? 'Edit Other Products' : 'Edit Medicine';
+            editMedicineModalTitle.textContent = 'Edit Inventory Item';
         }
         if (editSubmitBtn) {
-            editSubmitBtn.innerHTML = mode === 'non-medicine'
-                ? '<i class="bi bi-save me-1"></i> Update Products'
-                : '<i class="bi bi-save me-1"></i> Update Medicine';
+            editSubmitBtn.innerHTML = '<i class="bi bi-save me-1"></i> Update Item';
+        }
+        if (editCategoryDisplay) {
+            editCategoryDisplay.placeholder = 'Select or type a category...';
         }
     }
 
+    // Also keep the title/button in sync if the admin manually flips the Item Type
+    // dropdown while editing, not just when the row was first opened.
     document.getElementById('edit_item_type')?.addEventListener('change', (e) => {
         setEditModalMode(e.target.value);
     });
 
     // ── Init ─────────────────────────────────────────────────────────
     loadMedicines();
-    loadMedicineTypes();
+    loadMedicineCategories();
 });

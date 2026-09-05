@@ -151,21 +151,25 @@ try {
 
             $sel_barcode = $colExists($conn, 'medicines', 'barcode') ? "COALESCE(m.barcode, '')" : "''";
             $sel_type = $colExists($conn, 'medicines', 'type') ? 'm.type' : "''";
+            $sel_item_type = $colExists($conn, 'medicines', 'item_type') ? "COALESCE(m.item_type, 'medicine')" : "'medicine'";
             $sel_description = $colExists($conn, 'medicines', 'description') ? 'm.description' : "''";
             $sel_expiry = $colExists($conn, 'medicines', 'expiry_date') ? 'm.expiry_date' : "NULL";
             $stockFilter = $_GET['stock_filter'] ?? '';
+            $itemTypeFilter = in_array($_GET['item_type'] ?? '', ['medicine', 'non-medicine']) ? $_GET['item_type'] : '';
             require_once __DIR__ . '/pagination_helper.php';
             $paginationParams = supGetPaginationParams($conn);
             $limit = $paginationParams['limit'];
             $offset = $paginationParams['offset'];
             $page = $paginationParams['page'];
-            $sort = in_array($_GET['sort'] ?? 'name', ['name', 'quantity', 'type']) ? $_GET['sort'] : 'name';
+            $sort = in_array($_GET['sort'] ?? 'name', ['name', 'quantity', 'type', 'category']) ? $_GET['sort'] : 'name';
+            if ($sort === 'category') $sort = 'type';
 
             $baseSql = "SELECT 
                             m.id,
                             m.name,
                             {$sel_barcode} AS barcode,
                             {$sel_type} AS type,
+                            {$sel_item_type} AS item_type,
                             {$sel_description} AS description,
                             {$sel_expiry} AS expiry_date,
                             COALESCE(NULLIF(sm.unit_price, 0), si.unit_price, 0) as unit_price,
@@ -190,17 +194,29 @@ try {
             } elseif ($stockFilter === 'out_of_stock') {
                 $baseSql .= " AND COALESCE(si.quantity, 0) = 0";
             }
+            if ($itemTypeFilter !== '' && $colExists($conn, 'medicines', 'item_type')) {
+                $baseSql .= " AND {$sel_item_type} = ?";
+                $params[] = $itemTypeFilter;
+                $types .= 's';
+            }
 
             $countSql = "SELECT COUNT(DISTINCT m.id) as total FROM medicines m LEFT JOIN supplier_medicines sm ON m.id = sm.medicine_id AND sm.supplier_id = ? LEFT JOIN supplier_inventory si ON m.id = si.medicine_id AND si.supplier_id = ? WHERE m.name LIKE ? AND (sm.supplier_id = ? OR si.supplier_id = ?)";
+            $countParams = [$supplier_id, $supplier_id, $search, $supplier_id, $supplier_id];
+            $countTypes = 'iisii';
             if ($stockFilter === 'in_stock') {
                 $countSql .= " AND COALESCE(si.quantity, 0) > 0";
             } elseif ($stockFilter === 'out_of_stock') {
                 $countSql .= " AND COALESCE(si.quantity, 0) = 0";
             }
+            if ($itemTypeFilter !== '' && $colExists($conn, 'medicines', 'item_type')) {
+                $countSql .= " AND {$sel_item_type} = ?";
+                $countParams[] = $itemTypeFilter;
+                $countTypes .= 's';
+            }
 
             $countStmt = $conn->prepare($countSql);
             if (!$countStmt) throw new Exception('Count prepare failed: ' . $conn->error);
-            $countStmt->bind_param('iisii', $supplier_id, $supplier_id, $search, $supplier_id, $supplier_id);
+            $countStmt->bind_param($countTypes, ...$countParams);
             $countStmt->execute();
             $countResult = $countStmt->get_result();
             $totalItems = $countResult->fetch_assoc()['total'] ?? 0;
@@ -220,7 +236,7 @@ try {
                 $stmt->execute();
                 $result = $stmt->get_result();
             } else {
-                $fallbackSql = "SELECT m.id, m.name, {$sel_barcode} AS barcode, {$sel_type} AS type, {$sel_description} AS description, {$sel_expiry} AS expiry_date,
+                $fallbackSql = "SELECT m.id, m.name, {$sel_barcode} AS barcode, {$sel_type} AS type, {$sel_item_type} AS item_type, {$sel_description} AS description, {$sel_expiry} AS expiry_date,
                         COALESCE(NULLIF(sm.unit_price, 0), si.unit_price, 0) as unit_price,
                         COALESCE(sm.min_order_quantity, 1) as min_order_quantity,
                         COALESCE(sm.preferred, 0) as preferred,
@@ -263,11 +279,12 @@ try {
             };
             $sel_barcode = $columnExists($conn, 'barcode') ? 'COALESCE(m.barcode, \'\')' : "''";
             $sel_type = $columnExists($conn, 'type') ? 'm.type' : "''";
+            $sel_item_type = $columnExists($conn, 'item_type') ? "COALESCE(m.item_type, 'medicine')" : "'medicine'";
             $sel_description = $columnExists($conn, 'description') ? 'm.description' : "''";
             $sel_expiry = $columnExists($conn, 'expiry_date') ? 'm.expiry_date' : 'NULL';
-            // Single-medicine select: use safe column expressions to avoid referencing missing columns
+            // Single-item select: use safe column expressions to avoid referencing missing columns
             $sql = "SELECT 
-                        m.id, m.name, {$sel_barcode} AS barcode, {$sel_type} AS type, {$sel_description} AS description, {$sel_expiry} AS expiry_date,
+                        m.id, m.name, {$sel_barcode} AS barcode, {$sel_type} AS type, {$sel_item_type} AS item_type, {$sel_description} AS description, {$sel_expiry} AS expiry_date,
                         COALESCE(NULLIF(sm.unit_price, 0), si.unit_price, 0) as unit_price,
                         COALESCE(sm.min_order_quantity, 1) as min_order_quantity,
                         COALESCE(sm.preferred, 0) as preferred,
@@ -311,7 +328,7 @@ try {
             $dateIsValid = $date !== false && ($dateErrors === false || ($dateErrors['warning_count'] === 0 && $dateErrors['error_count'] === 0)) && $date->format('Y-m-d') === $supply_date;
 
             if ($medicine_id <= 0) {
-                jsonResponse(['status' => 'error', 'message' => 'Invalid medicine ID'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Invalid item ID'], 400);
             }
             if ($quantity <= 0) {
                 jsonResponse(['status' => 'error', 'message' => 'Supply quantity must be greater than 0'], 400);
@@ -334,7 +351,7 @@ try {
                 $owner = $ownerStmt->get_result()->fetch_assoc();
                 $ownerStmt->close();
                 if (!$owner) {
-                    throw new Exception('Medicine is not in your inventory');
+                    throw new Exception('Item is not in your inventory');
                 }
 
                 $currentQuantity = (int)$owner['current_quantity'];
@@ -400,7 +417,7 @@ try {
             $preferred = isset($_POST['preferred']) ? 1 : 0;
 
             if ($medicine_id <= 0) {
-                jsonResponse(['status' => 'error', 'message' => 'Invalid medicine ID'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Invalid item ID'], 400);
             }
 
             if ($quantity < 0) {
@@ -487,6 +504,7 @@ try {
             $name = trim($_POST['name'] ?? '');
             $barcode = trim($_POST['barcode'] ?? '');
             $type = trim($_POST['type'] ?? '');
+            $item_type = in_array($_POST['item_type'] ?? '', ['medicine', 'non-medicine']) ? $_POST['item_type'] : 'medicine';
             $description = trim($_POST['description'] ?? '');
             $expiry_date_input = trim($_POST['expiry_date'] ?? '');
             $quantity = intval($_POST['quantity'] ?? 0);
@@ -496,7 +514,7 @@ try {
 
             // Validate required fields
             if (empty($name)) {
-                jsonResponse(['status' => 'error', 'message' => 'Medicine name is required'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Item name is required'], 400);
             }
 
             if ($unit_price <= 0) {
@@ -530,12 +548,19 @@ try {
                     $barcodeCheck->close();
                 }
 
-                // Insert medicine into catalog. Pharmacy stock stays separate from supplier inventory.
+                // Insert item into catalog. Pharmacy stock stays separate from supplier inventory.
                 $catalogQuantity = 0;
                 $typeColumnCheck = $conn->query("SHOW COLUMNS FROM medicines LIKE 'type'");
                 $hasTypeColumn = $typeColumnCheck && $typeColumnCheck->num_rows > 0;
-                if ($hasTypeColumn) {
+                $itemTypeColumnCheck = $conn->query("SHOW COLUMNS FROM medicines LIKE 'item_type'");
+                $hasItemTypeColumn = $itemTypeColumnCheck && $itemTypeColumnCheck->num_rows > 0;
+
+                if ($hasTypeColumn && $hasItemTypeColumn) {
+                    $insertSql = "INSERT INTO medicines (name, barcode, quantity, type, item_type, description, expiry_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+                } elseif ($hasTypeColumn) {
                     $insertSql = "INSERT INTO medicines (name, barcode, quantity, type, description, expiry_date, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                } elseif ($hasItemTypeColumn) {
+                    $insertSql = "INSERT INTO medicines (name, barcode, quantity, item_type, description, expiry_date, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
                 } else {
                     $insertSql = "INSERT INTO medicines (name, barcode, quantity, description, expiry_date, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
                 }
@@ -544,14 +569,18 @@ try {
                     throw new Exception('Insert prepare failed: ' . $conn->error);
                 }
 
-                if ($hasTypeColumn) {
+                if ($hasTypeColumn && $hasItemTypeColumn) {
+                    $insertStmt->bind_param('ssissss', $name, $barcode, $catalogQuantity, $type, $item_type, $description, $expiry_date);
+                } elseif ($hasTypeColumn) {
                     $insertStmt->bind_param('ssisss', $name, $barcode, $catalogQuantity, $type, $description, $expiry_date);
+                } elseif ($hasItemTypeColumn) {
+                    $insertStmt->bind_param('ssisss', $name, $barcode, $catalogQuantity, $item_type, $description, $expiry_date);
                 } else {
                     $insertStmt->bind_param('ssiss', $name, $barcode, $catalogQuantity, $description, $expiry_date);
                 }
                 
                 if (!$insertStmt->execute()) {
-                    throw new Exception('Failed to create medicine: ' . $insertStmt->error);
+                    throw new Exception('Failed to create item: ' . $insertStmt->error);
                 }
                 
                 $medicine_id = $conn->insert_id;
@@ -586,7 +615,7 @@ try {
                 syncMedicineSuppliers($conn, $medicine_id);
                 $conn->commit();
 
-                $msg = 'Medicine added to catalog successfully! ';
+                $msg = 'Item added to catalog successfully! ';
                 if ($quantity > 0) {
                     $msg .= 'It is now available for admin orders.';
                 } else {
@@ -597,6 +626,7 @@ try {
                     'medicine_id' => $medicine_id,
                     'supplier_id' => $supplier_id,
                     'name' => $name,
+                    'item_type' => $item_type,
                     'quantity' => $quantity
                 ]);
 
@@ -604,8 +634,8 @@ try {
 
             } catch (Exception $e) {
                 $conn->rollback();
-                error_log("Create medicine error: " . $e->getMessage());
-                jsonResponse(['status' => 'error', 'message' => 'Failed to create medicine: ' . $e->getMessage()], 500);
+                error_log("Create item error: " . $e->getMessage());
+                jsonResponse(['status' => 'error', 'message' => 'Failed to create item: ' . $e->getMessage()], 500);
             }
         }
 
@@ -615,6 +645,7 @@ try {
             $name = trim($_POST['name'] ?? '');
             $barcode = trim($_POST['barcode'] ?? '');
             $type = trim($_POST['type'] ?? '');
+            $item_type = in_array($_POST['item_type'] ?? '', ['medicine', 'non-medicine']) ? $_POST['item_type'] : 'medicine';
             $description = trim($_POST['description'] ?? '');
             $expiry_date_input = trim($_POST['expiry_date'] ?? '');
             $quantity = intval($_POST['quantity'] ?? 0);
@@ -623,10 +654,10 @@ try {
             $preferred = isset($_POST['preferred']) ? 1 : 0;
 
             if ($medicine_id <= 0) {
-                jsonResponse(['status' => 'error', 'message' => 'Invalid medicine ID'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Invalid item ID'], 400);
             }
             if ($name === '') {
-                jsonResponse(['status' => 'error', 'message' => 'Medicine name is required'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Item name is required'], 400);
             }
             if ($quantity < 0) {
                 jsonResponse(['status' => 'error', 'message' => 'Quantity cannot be negative'], 400);
@@ -655,7 +686,7 @@ try {
                 $ownerStmt->bind_param('iii', $supplier_id, $supplier_id, $medicine_id);
                 $ownerStmt->execute();
                 if ($ownerStmt->get_result()->num_rows === 0) {
-                    throw new Exception('Medicine is not in your inventory');
+                    throw new Exception('Item is not in your inventory');
                 }
                 $ownerStmt->close();
 
@@ -678,12 +709,13 @@ try {
                 }
                 $medStmt->bind_param('ssi', $name, $barcode, $medicine_id);
                 if (!$medStmt->execute()) {
-                    throw new Exception('Failed to update medicine: ' . $medStmt->error);
+                    throw new Exception('Failed to update item: ' . $medStmt->error);
                 }
                 $medStmt->close();
 
                 $optionalUpdates = [
                     'type' => [$type, 's'],
+                    'item_type' => [$item_type, 's'],
                     'description' => [$description, 's'],
                     'expiry_date' => [$expiry_date, 's'],
                 ];
@@ -746,10 +778,10 @@ try {
                     'quantity' => $quantity
                 ]);
 
-                jsonResponse(['status' => 'success', 'message' => 'Medicine updated successfully']);
+                jsonResponse(['status' => 'success', 'message' => 'Item updated successfully']);
             } catch (Exception $e) {
                 $conn->rollback();
-                error_log("Update medicine error: " . $e->getMessage());
+                error_log("Update item error: " . $e->getMessage());
                 jsonResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
             }
         }
@@ -758,7 +790,7 @@ try {
         elseif ($action === 'delete_medicine' && $is_supplier) {
             $medicine_id = intval($_POST['medicine_id'] ?? 0);
             if ($medicine_id <= 0) {
-                jsonResponse(['status' => 'error', 'message' => 'Invalid medicine ID'], 400);
+                jsonResponse(['status' => 'error', 'message' => 'Invalid item ID'], 400);
             }
 
             $conn->begin_transaction();
@@ -778,7 +810,7 @@ try {
                 $ownerStmt->bind_param('iii', $supplier_id, $supplier_id, $medicine_id);
                 $ownerStmt->execute();
                 if ($ownerStmt->get_result()->num_rows === 0) {
-                    throw new Exception('Medicine is not in your inventory');
+                    throw new Exception('Item is not in your inventory');
                 }
                 $ownerStmt->close();
 
@@ -806,10 +838,10 @@ try {
                     'supplier_id' => $supplier_id
                 ]);
 
-                jsonResponse(['status' => 'success', 'message' => 'Medicine removed from your inventory']);
+                jsonResponse(['status' => 'success', 'message' => 'Item removed from your inventory']);
             } catch (Exception $e) {
                 $conn->rollback();
-                error_log("Delete medicine error: " . $e->getMessage());
+                error_log("Delete item error: " . $e->getMessage());
                 jsonResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
             }
         }

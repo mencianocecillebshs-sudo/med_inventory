@@ -1,8 +1,6 @@
 <?php
 header('Content-Type: application/json');
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -25,7 +23,8 @@ try {
         // Get all inventory records without pagination
         $query = "SELECT 
                     id, 
-                    name as 'Medicine Name', 
+                    name as 'Item Name',
+                    name as 'Medicine Name',
                     barcode, 
                     quantity as 'Remaining Stock', 
                     COALESCE(NULLIF(item_type, ''), NULLIF(category, ''), 'N/A') as 'Type', 
@@ -70,7 +69,8 @@ try {
         if ($medicine_id > 0) {
             // For specific medicine - handle if deleted
             $query = "SELECT 
-                        COALESCE(m.name, 'Deleted Medicine') as `Medicine Name`, 
+                        COALESCE(m.name, 'Deleted Item') as `Item Name`,
+                        COALESCE(m.name, 'Deleted Medicine') as `Medicine Name`,
                         COALESCE($fifteen_sum, 0) as `Total Dispensed (15 Days)`, 
                         '$date_span_start' as `Date Span Start`, 
                         '$date_span_end' as `Date Span End`, 
@@ -84,7 +84,8 @@ try {
             // For all medicines - separate queries for existing and deleted to avoid undefined and group deleted as one row
             // Existing medicines query
             $existing_query = "SELECT 
-                                m.name as `Medicine Name`, 
+                                m.name as `Item Name`,
+                                m.name as `Medicine Name`,
                                 COALESCE($fifteen_sum, 0) as `Total Dispensed (15 Days)`, 
                                 '$date_span_start' as `Date Span Start`, 
                                 '$date_span_end' as `Date Span End`, 
@@ -103,9 +104,10 @@ try {
                 }
             }
             
-            // Deleted medicines query - grouped as one row to avoid multiple undefined entries
+            // Deleted items query - grouped as one row to avoid multiple undefined entries
             $deleted_query = "SELECT 
-                                'Deleted Medicine' as `Medicine Name`, 
+                                'Deleted Item' as `Item Name`,
+                                'Deleted Medicine' as `Medicine Name`,
                                 COALESCE($fifteen_sum, 0) as `Total Dispensed (15 Days)`, 
                                 '$date_span_start' as `Date Span Start`, 
                                 '$date_span_end' as `Date Span End`, 
@@ -122,9 +124,9 @@ try {
                 }
             }
             
-            // Sort the combined reports by Medicine Name (existing first, then Deleted)
+            // Sort the combined reports by Item Name (existing first, then Deleted)
             usort($reports, function($a, $b) {
-                return strcmp($a['Medicine Name'], $b['Medicine Name']);
+                return strcmp($a['Item Name'], $b['Item Name']);
             });
             
             echo json_encode([

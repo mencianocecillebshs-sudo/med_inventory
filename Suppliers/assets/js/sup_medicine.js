@@ -1,22 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('medicine-table');
+    const tableBody = document.getElementById('item-table');
     const searchInput = document.getElementById('search');
-    const stockFilter = document.getElementById('stock-filter');
+    const itemFilter = document.getElementById('item-filter');
     const sortSelect = document.getElementById('sort');
     const pagination = document.getElementById('pagination');
-    const medicineCount = document.getElementById('medicine-count');
-    const addNewMedicineForm = document.getElementById('add-new-medicine-form');
-    const editMedicineForm = document.getElementById('edit-medicine-form');
+    const itemCount = document.getElementById('item-count');
+    const addNewMedicineForm = document.getElementById('add-new-item-form');
+    const editMedicineForm = document.getElementById('edit-item-form');
     const addSupplyForm = document.getElementById('add-supply-form');
     const addSupplyModal = document.getElementById('addSupplyModal');
-    const deleteModalEl = document.getElementById('deleteMedicineModal');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-medicine-btn');
+    const deleteModalEl = document.getElementById('deleteItemModal');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-item-btn');
+    const addItemTypeSelect = document.getElementById('item_type');
+    const editItemTypeSelect = document.getElementById('edit_item_type');
+
+    const STOCK_FILTER_VALUES = ['in_stock', 'out_of_stock'];
+    const ITEM_TYPE_FILTER_VALUES = ['medicine', 'non-medicine'];
 
     const peso = window.SupUtils ? window.SupUtils.currencySymbol() : '\u20b1';
     let currentPage = 1;
     let currentSort = 'name';
     let currentSearch = '';
     let currentStockFilter = '';
+    let currentItemTypeFilter = '';
     let pendingDeleteId = null;
     let allMedicineTypes = [];
 
@@ -205,33 +211,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const addTypeCombobox = initTypeCombobox(
-        'add-type-combobox',
-        'add-type-display',
+        'add-category-combobox',
+        'add-category-display',
         'type',
-        'add-type-search',
-        'add-type-list',
-        'add-type-error'
+        'add-category-search',
+        'add-category-list',
+        'add-category-error'
     );
     const editTypeCombobox = initTypeCombobox(
-        'edit-type-combobox',
-        'edit-type-display',
+        'edit-category-combobox',
+        'edit-category-display',
         'edit_type',
-        'edit-type-search',
-        'edit-type-list',
-        'edit-type-error'
+        'edit-category-search',
+        'edit-category-list',
+        'edit-category-error'
     );
 
-    function renderEmptyState(message = 'No medicines saved under your supplier account yet.') {
+    function renderEmptyState(message = 'No items saved under your supplier account yet.') {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center py-5">
+                <td colspan="9" class="text-center py-5">
                     <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e0;"></i>
                     <p class="text-muted mt-3">${escapeHtml(message)}</p>
                 </td>
             </tr>
         `;
         pagination.innerHTML = '';
-        medicineCount.textContent = '0 medicines';
+        itemCount.textContent = '0 items';
         if (window.SupUtils) {
             window.SupUtils.renderPagination(pagination, { total_items: 0, total_pages: 1, current_page: currentPage }, currentPage, (page) => {
                 currentPage = page;
@@ -279,10 +285,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? '<i class="bi bi-check-circle-fill text-success"></i> Available for Orders'
                 : '<i class="bi bi-x-circle-fill text-danger"></i> Not Available';
 
+            const isNonMedicine = med.item_type === 'non-medicine';
+            const itemTypeLabel = isNonMedicine ? 'Other Product' : 'Medicine';
+            const itemTypeBadge = `<span class="stock-badge ${isNonMedicine ? 'bg-info-subtle text-info-emphasis' : 'info-badge'}">${itemTypeLabel}</span>`;
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${escapeHtml(med.name)}</strong></td>
                 <td class="col-detail">${escapeHtml(med.type || '-')}</td>
+                <td>${itemTypeBadge}</td>
                 <td class="col-detail">${escapeHtml(truncate(med.description || '-', 50))}</td>
                 <td>${stockBadge}</td>
                 <td>${price > 0 ? (window.SupUtils ? window.SupUtils.formatCurrency(price) : `${peso}${price.toFixed(2)}`) : '<span class="text-muted">Not set</span>'}</td>
@@ -292,10 +303,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-sm btn-success action-btn add-supply-btn" data-id="${med.id}" data-name="${escapeHtml(med.name)}">
                         <i class="bi bi-box-arrow-in-down me-1"></i>Add Supply
                     </button>
-                    <button class="btn btn-sm btn-warning action-btn edit-medicine-btn" data-id="${med.id}">
+                    <button class="btn btn-sm btn-warning action-btn edit-item-btn" data-id="${med.id}">
                         <i class="bi bi-pencil-square me-1"></i>Edit
                     </button>
-                    <button class="btn btn-sm btn-danger action-btn delete-medicine-btn"
+                    <button class="btn btn-sm btn-danger action-btn delete-item-btn"
                         data-id="${med.id}"
                         data-name="${escapeHtml(med.name)}">
                         <i class="bi bi-trash me-1"></i>Remove
@@ -320,7 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
             limit: itemsPerPage,
             sort: currentSort,
             search: currentSearch,
-            stock_filter: currentStockFilter
+            stock_filter: currentStockFilter,
+            item_type: currentItemTypeFilter
         });
 
         // If page was loaded in debug mode, include debug & supplier_id so API can return data without session (dev only)
@@ -332,11 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await fetchJson(`api/sup_medicines.php?${params}`);
             renderMedicines(data.data, data.pagination);
-            medicineCount.textContent = `${data.pagination?.total_items || 0} medicines`;
+            itemCount.textContent = `${data.pagination?.total_items || 0} items`;
         } catch (error) {
             console.error('Load error:', error);
-            showToast(error.message || 'Failed to load medicines', 'danger');
-            renderEmptyState('Failed to load medicines.');
+            showToast(error.message || 'Failed to load items', 'danger');
+            renderEmptyState('Failed to load items.');
         }
     }
 
@@ -347,7 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetchJson(url);
             const med = response.data || {};
 
-            document.getElementById('edit_medicine_id').value = med.id || medicineId;
+            document.getElementById('edit_item_id').value = med.id || medicineId;
+            if (editItemTypeSelect) editItemTypeSelect.value = med.item_type === 'non-medicine' ? 'non-medicine' : 'medicine';
             document.getElementById('edit_name').value = med.name || '';
             document.getElementById('edit_barcode').value = med.barcode || '';
             if (editTypeCombobox) {
@@ -362,10 +375,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('edit_min_order').value = parseInt(med.min_order_quantity, 10) || 1;
             document.getElementById('edit_preferred').checked = parseInt(med.preferred, 10) === 1;
 
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('editMedicineModal')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editItemModal')).show();
         } catch (error) {
             console.error('Edit load error:', error);
-            showToast(error.message || 'Failed to load medicine', 'danger');
+            showToast(error.message || 'Failed to load item', 'danger');
         }
     }
 
@@ -388,12 +401,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tableBody.addEventListener('click', (e) => {
         const addSupplyBtn = e.target.closest('.add-supply-btn');
-        const editBtn = e.target.closest('.edit-medicine-btn');
-        const deleteBtn = e.target.closest('.delete-medicine-btn');
+        const editBtn = e.target.closest('.edit-item-btn');
+        const deleteBtn = e.target.closest('.delete-item-btn');
 
         if (addSupplyBtn) {
-            document.getElementById('supply_medicine_id').value = addSupplyBtn.dataset.id;
-            document.getElementById('supply_medicine_name').textContent = addSupplyBtn.dataset.name || '';
+            document.getElementById('supply_item_id').value = addSupplyBtn.dataset.id;
+            document.getElementById('supply_item_name').textContent = addSupplyBtn.dataset.name || '';
             document.getElementById('supply_quantity').value = '';
             document.getElementById('supply_date').value = new Date().toISOString().split('T')[0];
             document.getElementById('supply_notes').value = '';
@@ -409,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteBtn) {
             pendingDeleteId = parseInt(deleteBtn.dataset.id, 10);
-            document.getElementById('delete_medicine_name').textContent = deleteBtn.dataset.name || 'this medicine';
+            document.getElementById('delete_item_name').textContent = deleteBtn.dataset.name || 'this item';
             bootstrap.Modal.getOrCreateInstance(deleteModalEl).show();
         }
     });
@@ -456,8 +469,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    stockFilter?.addEventListener('change', (e) => {
-        currentStockFilter = e.target.value;
+    itemFilter?.addEventListener('change', (e) => {
+        const value = e.target.value;
+        currentStockFilter = STOCK_FILTER_VALUES.includes(value) ? value : '';
+        currentItemTypeFilter = ITEM_TYPE_FILTER_VALUES.includes(value) ? value : '';
         currentPage = 1;
         loadMedicines();
     });
@@ -489,22 +504,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            showToast(data.message || 'Medicine added successfully', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('addNewMedicineModal')).hide();
+            showToast(data.message || 'Item added successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addNewItemModal')).hide();
             addNewMedicineForm.classList.remove('was-validated');
             addNewMedicineForm.reset();
             addTypeCombobox?._reset();
             loadMedicines();
         } catch (error) {
-            console.error('Add medicine error:', error);
-            showToast(error.message || 'Failed to add medicine', 'danger');
+            console.error('Add item error:', error);
+            showToast(error.message || 'Failed to add item', 'danger');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
     });
 
-    document.getElementById('addNewMedicineModal')?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('addNewItemModal')?.addEventListener('hidden.bs.modal', () => {
         addNewMedicineForm?.classList.remove('was-validated');
         addNewMedicineForm?.reset();
         addTypeCombobox?._reset();
@@ -531,21 +546,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            showToast(data.message || 'Medicine updated successfully', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('editMedicineModal')).hide();
+            showToast(data.message || 'Item updated successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editItemModal')).hide();
             editMedicineForm.classList.remove('was-validated');
             editTypeCombobox?._reset();
             loadMedicines();
         } catch (error) {
-            console.error('Edit medicine error:', error);
-            showToast(error.message || 'Failed to update medicine', 'danger');
+            console.error('Edit item error:', error);
+            showToast(error.message || 'Failed to update item', 'danger');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
     });
 
-    document.getElementById('editMedicineModal')?.addEventListener('hidden.bs.modal', () => {
+    document.getElementById('editItemModal')?.addEventListener('hidden.bs.modal', () => {
         editMedicineForm?.classList.remove('was-validated');
         editMedicineForm?.reset();
         editTypeCombobox?._reset();
@@ -567,13 +582,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            showToast(data.message || 'Medicine removed from your inventory', 'success');
+            showToast(data.message || 'Item removed from your inventory', 'success');
             bootstrap.Modal.getInstance(deleteModalEl).hide();
             pendingDeleteId = null;
             loadMedicines();
         } catch (error) {
-            console.error('Delete medicine error:', error);
-            showToast(error.message || 'Failed to remove medicine', 'danger');
+            console.error('Delete item error:', error);
+            showToast(error.message || 'Failed to remove item', 'danger');
         } finally {
             confirmDeleteBtn.disabled = false;
             confirmDeleteBtn.innerHTML = originalText;
@@ -581,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (window.SupUtils) {
-        window.SupUtils.initExpandableTable('#medicine-table-wrap', '#toggle-medicine-columns');
+        window.SupUtils.initExpandableTable('#item-table-wrap', '#toggle-item-columns');
     }
 
     loadMedicines();

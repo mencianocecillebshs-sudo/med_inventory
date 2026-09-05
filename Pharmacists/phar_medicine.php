@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medicine Management - Medicine Inventory System</title>
+    <title>Inventory Management - Inventory System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
@@ -114,26 +114,77 @@ if (!isset($_SESSION['user_id'])) {
         .spinner-border-sm { width: 1rem; height: 1rem; }
         select option { color: #000000 !important; background-color: #ffffff !important; }
 
-        /* ── Item Type Tabs ── */
-        .item-type-tab.active {
-            background-color: #1b5e3f;
-            border-color: #1b5e3f;
-            color: #fff;
+        .filter-select {
+            width: 220px;
+            min-width: 220px;
+        }
+        .inventory-item-modal {
+            max-width: 760px;
+        }
+        .inventory-item-modal .modal-content {
+            max-height: calc(100vh - 2rem);
+        }
+        .inventory-item-modal .modal-header {
+            padding: 1rem 1.25rem;
+        }
+        .inventory-item-modal .modal-body {
+            padding: 1.25rem;
+            overflow-y: auto;
+        }
+        .inventory-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.9rem 1rem;
+        }
+        .inventory-form-grid .mb-3 {
+            margin-bottom: 0 !important;
+        }
+        .inventory-form-grid .form-span-2 {
+            grid-column: 1 / -1;
+        }
+        .inventory-form-grid .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+        }
+        .inventory-form-grid .form-control,
+        .inventory-form-grid .form-select {
+            padding: 0.55rem 0.8rem;
+        }
+        .inventory-form-grid textarea.form-control {
+            min-height: 72px;
+        }
+        .inventory-modal-actions {
+            grid-column: 1 / -1;
+            margin-top: 0.15rem;
+        }
+        #item_type option[value=""] {
+            display: none;
+        }
+        @media (max-width: 576px) {
+            .filter-select,
+            #search {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+            .inventory-form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        /* ── Custom Type Combobox ── */
-        .type-combobox {
+        /* ── Custom Category Combobox ── */
+        .category-combobox {
             position: relative;
         }
-        .type-combobox .type-input-wrapper {
+        .category-combobox .category-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
         }
-        .type-combobox .type-input-wrapper .form-control {
+        .category-combobox .category-input-wrapper .form-control {
             padding-right: 2.8rem;
         }
-        .type-combobox .type-chevron {
+        .category-combobox .category-chevron {
             position: absolute;
             right: 0.85rem;
             top: 50%;
@@ -143,10 +194,10 @@ if (!isset($_SESSION['user_id'])) {
             transition: transform 0.2s ease;
             font-size: 1rem;
         }
-        .type-combobox.open .type-chevron {
+        .category-combobox.open .category-chevron {
             transform: translateY(-50%) rotate(180deg);
         }
-        .type-dropdown {
+        .category-dropdown {
             display: none;
             position: absolute;
             top: calc(100% + 6px);
@@ -161,15 +212,15 @@ if (!isset($_SESSION['user_id'])) {
             max-height: 220px;
             flex-direction: column;
         }
-        .type-combobox.open .type-dropdown {
+        .category-combobox.open .category-dropdown {
             display: flex;
         }
-        .type-dropdown-search {
+        .category-dropdown-search {
             padding: 0.6rem 0.85rem;
             border-bottom: 1px solid #e2e8f0;
             background: #f8fafc;
         }
-        .type-dropdown-search input {
+        .category-dropdown-search input {
             width: 100%;
             border: none;
             outline: none;
@@ -177,13 +228,13 @@ if (!isset($_SESSION['user_id'])) {
             font-size: 0.875rem;
             color: #1e293b;
         }
-        .type-dropdown-list {
+        .category-dropdown-list {
             overflow-y: auto;
             flex: 1;
         }
-        .type-dropdown-list::-webkit-scrollbar { width: 6px; }
-        .type-dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-        .type-dropdown-item {
+        .category-dropdown-list::-webkit-scrollbar { width: 6px; }
+        .category-dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        .category-dropdown-item {
             padding: 0.6rem 1rem;
             cursor: pointer;
             font-size: 0.9rem;
@@ -193,12 +244,12 @@ if (!isset($_SESSION['user_id'])) {
             gap: 0.5rem;
             transition: background 0.15s ease;
         }
-        .type-dropdown-item:hover,
-        .type-dropdown-item.active {
+        .category-dropdown-item:hover,
+        .category-dropdown-item.active {
             background: #f0fdf4;
             color: #1b5e3f;
         }
-        .type-dropdown-item .type-badge {
+        .category-dropdown-item .category-badge {
             display: inline-block;
             padding: 0.2rem 0.6rem;
             border-radius: 20px;
@@ -207,41 +258,41 @@ if (!isset($_SESSION['user_id'])) {
             background: #dcfce7;
             color: #166534;
         }
-        .type-dropdown-item.new-type-item {
+        .category-dropdown-item.new-category-item {
             border-top: 1px solid #e2e8f0;
             color: #1b5e3f;
             font-weight: 600;
         }
-        .type-dropdown-item.new-type-item .bi {
+        .category-dropdown-item.new-category-item .bi {
             font-size: 0.85rem;
         }
-        .type-dropdown-empty {
+        .category-dropdown-empty {
             padding: 1rem;
             text-align: center;
             color: #94a3b8;
             font-size: 0.875rem;
         }
         /* Dark mode support */
-        [data-bs-theme="dark"] .type-dropdown,
-        .dark-mode .type-dropdown {
+        [data-bs-theme="dark"] .category-dropdown,
+        .dark-mode .category-dropdown {
             background: #1e293b;
             border-color: #1b5e3f;
         }
-        [data-bs-theme="dark"] .type-dropdown-search,
-        .dark-mode .type-dropdown-search {
+        [data-bs-theme="dark"] .category-dropdown-search,
+        .dark-mode .category-dropdown-search {
             background: #0f172a;
             border-color: #334155;
         }
-        [data-bs-theme="dark"] .type-dropdown-search input,
-        .dark-mode .type-dropdown-search input { color: #e2e8f0; }
-        [data-bs-theme="dark"] .type-dropdown-item,
-        .dark-mode .type-dropdown-item { color: #e2e8f0; }
-        [data-bs-theme="dark"] .type-dropdown-item:hover,
-        [data-bs-theme="dark"] .type-dropdown-item.active,
-        .dark-mode .type-dropdown-item:hover,
-        .dark-mode .type-dropdown-item.active { background: #1b5e3f33; color: #4ade80; }
-        [data-bs-theme="dark"] .type-badge,
-        .dark-mode .type-badge { background: #14532d; color: #86efac; }
+        [data-bs-theme="dark"] .category-dropdown-search input,
+        .dark-mode .category-dropdown-search input { color: #e2e8f0; }
+        [data-bs-theme="dark"] .category-dropdown-item,
+        .dark-mode .category-dropdown-item { color: #e2e8f0; }
+        [data-bs-theme="dark"] .category-dropdown-item:hover,
+        [data-bs-theme="dark"] .category-dropdown-item.active,
+        .dark-mode .category-dropdown-item:hover,
+        .dark-mode .category-dropdown-item.active { background: #1b5e3f33; color: #4ade80; }
+        [data-bs-theme="dark"] .category-badge,
+        .dark-mode .category-badge { background: #14532d; color: #86efac; }
     </style>
 </head>
 <body>
@@ -251,34 +302,23 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="main-content admin-table-page">
         <div class="page-header">
-            <h2><i class="bi bi-capsule me-2"></i> Medicine Management</h2>
+            <h2><i class="bi bi-box-seam me-2"></i> Inventory Management</h2>
         </div>
         
         <div class="d-flex mb-3 align-items-center gap-2 flex-wrap">
             <button class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#addMedicineModal" id="add-medicine-btn">
-                <i class="bi bi-plus-circle me-1"></i> Add Medicine
+                <i class="bi bi-plus-circle me-1"></i> Add Item
             </button>
-            <button class="btn btn-primary action-btn" data-bs-toggle="modal" data-bs-target="#addMedicineModal" id="add-other-product-btn">
-                <i class="bi bi-plus-circle me-1"></i> Other Products
-            </button>
-            <input type="text" class="form-control" id="search" placeholder="Search medicines..." style="max-width: 300px;">
+            <input type="text" class="form-control" id="search" placeholder="Search inventory items..." style="max-width: 300px;">
             <select class="form-select" id="sort" style="width: 200px; min-width: 200px;">
                 <option value="name">Sort by Name</option>
                 <option value="quantity">Sort by Quantity</option>
                 <option value="expiry_date">Sort by Expiry Date</option>
             </select>
-        </div>
-
-        <div class="d-flex mb-4 align-items-center gap-2 flex-wrap">
-            <div class="btn-group" role="group" aria-label="Item type view" id="item-type-tabs">
-                <button type="button" class="btn btn-outline-secondary item-type-tab active" data-value="">All Items</button>
-                <button type="button" class="btn btn-outline-secondary item-type-tab" data-value="medicine">Medicines</button>
-                <button type="button" class="btn btn-outline-secondary item-type-tab" data-value="non-medicine">Other Products</button>
-            </div>
-            <select class="form-select d-none" id="filter-item-type" style="width: 180px; min-width: 180px;">
-                <option value="">All Item Types</option>
-                <option value="medicine">Medicine Only</option>
-                <option value="non-medicine">Non-Medicine Only</option>
+            <select class="form-select filter-select" id="filter-item-type" aria-label="Filter by item type">
+                <option value="">All Items</option>
+                <option value="medicine">Medicines</option>
+                <option value="non-medicine">Other Products</option>
             </select>
         </div>
         
@@ -320,11 +360,11 @@ if (!isset($_SESSION['user_id'])) {
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Delete Medicine</h5>
+                    <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Delete Item</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-2">Are you sure you want to delete this medicine?</p>
+                    <p class="mb-2">Are you sure you want to delete this item?</p>
                     <div class="alert alert-warning mb-0">
                         <i class="bi bi-exclamation-triangle me-2"></i>This action cannot be undone.
                     </div>
@@ -339,16 +379,25 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <!-- Add Medicine Modal -->
+    <!-- Add Inventory Item Modal -->
     <div class="modal fade" id="addMedicineModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable inventory-item-modal">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Add Medicine</h5>
+                    <h5 class="modal-title">Add Inventory Item</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-medicine-form" novalidate>
+                    <form id="add-medicine-form" class="inventory-form-grid" novalidate>
+                        <div class="mb-3">
+                            <label for="item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="item_type" name="item_type" required>
+                                <option value="" selected disabled>Choose what to add</option>
+                                <option value="medicine">Medicine</option>
+                                <option value="non-medicine">Other Product</option>
+                            </select>
+                            <div class="invalid-feedback">Item type is required.</div>
+                        </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -364,38 +413,30 @@ if (!isset($_SESSION['user_id'])) {
                             <input type="number" class="form-control" id="quantity" name="quantity" required min="0">
                             <div class="invalid-feedback">Quantity must be non-negative.</div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Type <span class="text-danger">*</span></label>
+                        <div class="mb-3 form-span-2">
+                            <label class="form-label">Category <span class="text-danger">*</span></label>
                             <!-- Hidden input that actually gets submitted -->
-                            <input type="hidden" id="type" name="type" required>
-                            <div class="type-combobox" id="add-type-combobox">
-                                <div class="type-input-wrapper">
-                                    <input type="text" class="form-control type-display-input" 
-                                           id="add-type-display"
-                                           placeholder="Select or type a new type..."
+                            <input type="hidden" id="category" name="category" required>
+                            <div class="category-combobox" id="add-category-combobox">
+                                <div class="category-input-wrapper">
+                                    <input type="text" class="form-control category-display-input" 
+                                           id="add-category-display"
+                                           placeholder="Select or type a category..."
                                            autocomplete="off">
-                                    <i class="bi bi-chevron-down type-chevron"></i>
+                                    <i class="bi bi-chevron-down category-chevron"></i>
                                 </div>
-                                <div class="type-dropdown" id="add-type-dropdown">
-                                    <div class="type-dropdown-search">
-                                        <input type="text" id="add-type-search" placeholder="Search types...">
+                                <div class="category-dropdown" id="add-category-dropdown">
+                                    <div class="category-dropdown-search">
+                                        <input type="text" id="add-category-search" placeholder="Search categories...">
                                     </div>
-                                    <div class="type-dropdown-list" id="add-type-list"></div>
+                                    <div class="category-dropdown-list" id="add-category-list"></div>
                                 </div>
                             </div>
-                            <div class="invalid-feedback d-block" id="add-type-error" style="display:none!important"></div>
+                            <div class="invalid-feedback d-block" id="add-category-error" style="display:none!important"></div>
                         </div>
-                        <div class="mb-3">
-                            <label for="item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="item_type" name="item_type" required>
-                                <option value="medicine">Medicine</option>
-                                <option value="non-medicine">Non-Medicine</option>
-                            </select>
-                            <div class="invalid-feedback">Item type is required.</div>
-                        </div>
-                        <div class="mb-3">
+                        <div class="mb-3 form-span-2">
                             <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                            <textarea class="form-control" id="description" name="description" rows="2" required></textarea>
                             <div class="invalid-feedback">Description is required.</div>
                         </div>
                         <div class="mb-3">
@@ -403,9 +444,9 @@ if (!isset($_SESSION['user_id'])) {
                             <input type="date" class="form-control" id="expiry_date" name="expiry_date" required min="<?php echo date('Y-m-d'); ?>">
                             <div class="invalid-feedback">Expiry date must be today or later.</div>
                         </div>
-                        <div class="d-flex justify-content-end">
+                        <div class="inventory-modal-actions d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary action-btn me-2" id="add-medicine-submit-btn">
-                                <i class="bi bi-save me-1"></i> Save Medicine
+                                <i class="bi bi-save me-1"></i> Save Item
                             </button>
                             <button type="button" class="btn btn-secondary action-btn" data-bs-dismiss="modal">Cancel</button>
                         </div>
@@ -415,17 +456,25 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <!-- Edit Medicine Modal -->
+    <!-- Edit Inventory Item Modal -->
     <div class="modal fade" id="editMedicineModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable inventory-item-modal">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="edit-medicine-modal-title">Edit Medicine</h5>
+                    <h5 class="modal-title" id="edit-medicine-modal-title">Edit Inventory Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="edit-medicine-form" novalidate>
+                    <form id="edit-medicine-form" class="inventory-form-grid" novalidate>
                         <input type="hidden" id="edit_id" name="edit_id">
+                        <div class="mb-3">
+                            <label for="edit_item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="edit_item_type" name="edit_item_type" required>
+                                <option value="medicine">Medicine</option>
+                                <option value="non-medicine">Other Product</option>
+                            </select>
+                            <div class="invalid-feedback">Item type is required.</div>
+                        </div>
                         <div class="mb-3">
                             <label for="edit_name" class="form-label">Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="edit_name" name="edit_name" required>
@@ -441,38 +490,30 @@ if (!isset($_SESSION['user_id'])) {
                             <input type="number" class="form-control" id="edit_quantity" name="edit_quantity" required min="0">
                             <div class="invalid-feedback">Quantity must be non-negative.</div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Type <span class="text-danger">*</span></label>
+                        <div class="mb-3 form-span-2">
+                            <label class="form-label">Category <span class="text-danger">*</span></label>
                             <!-- Hidden input that actually gets submitted -->
-                            <input type="hidden" id="edit_type" name="edit_type" required>
-                            <div class="type-combobox" id="edit-type-combobox">
-                                <div class="type-input-wrapper">
-                                    <input type="text" class="form-control type-display-input"
-                                           id="edit-type-display"
-                                           placeholder="Select or type a new type..."
+                            <input type="hidden" id="edit_category" name="edit_category" required>
+                            <div class="category-combobox" id="edit-category-combobox">
+                                <div class="category-input-wrapper">
+                                    <input type="text" class="form-control category-display-input"
+                                           id="edit-category-display"
+                                           placeholder="Select or type a new category..."
                                            autocomplete="off">
-                                    <i class="bi bi-chevron-down type-chevron"></i>
+                                    <i class="bi bi-chevron-down category-chevron"></i>
                                 </div>
-                                <div class="type-dropdown" id="edit-type-dropdown">
-                                    <div class="type-dropdown-search">
-                                        <input type="text" id="edit-type-search" placeholder="Search types...">
+                                <div class="category-dropdown" id="edit-category-dropdown">
+                                    <div class="category-dropdown-search">
+                                        <input type="text" id="edit-category-search" placeholder="Search categories...">
                                     </div>
-                                    <div class="type-dropdown-list" id="edit-type-list"></div>
+                                    <div class="category-dropdown-list" id="edit-category-list"></div>
                                 </div>
                             </div>
-                            <div class="invalid-feedback d-block" id="edit-type-error" style="display:none!important"></div>
+                            <div class="invalid-feedback d-block" id="edit-category-error" style="display:none!important"></div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_item_type" class="form-label">Item Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="edit_item_type" name="edit_item_type" required>
-                                <option value="medicine">Medicine</option>
-                                <option value="non-medicine">Non-Medicine</option>
-                            </select>
-                            <div class="invalid-feedback">Item type is required.</div>
-                        </div>
-                        <div class="mb-3">
+                        <div class="mb-3 form-span-2">
                             <label for="edit_description" class="form-label">Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="edit_description" name="edit_description" rows="3" required></textarea>
+                            <textarea class="form-control" id="edit_description" name="edit_description" rows="2" required></textarea>
                             <div class="invalid-feedback">Description is required.</div>
                         </div>
                         <div class="mb-3">
@@ -480,9 +521,9 @@ if (!isset($_SESSION['user_id'])) {
                             <input type="date" class="form-control" id="edit_expiry_date" name="edit_expiry_date" required min="<?php echo date('Y-m-d'); ?>">
                             <div class="invalid-feedback">Expiry date must be today or later.</div>
                         </div>
-                        <div class="d-flex justify-content-end">
+                        <div class="inventory-modal-actions d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary action-btn me-2" id="edit-medicine-submit-btn">
-                                <i class="bi bi-save me-1"></i> Update Medicine
+                                <i class="bi bi-save me-1"></i> Update Item
                             </button>
                             <button type="button" class="btn btn-secondary action-btn" data-bs-dismiss="modal">Cancel</button>
                         </div>

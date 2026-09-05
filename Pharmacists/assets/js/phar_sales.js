@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('sales-table');
     const filterPayment = document.getElementById('filter-payment');
     const searchInput = document.getElementById('search-input');
+    const salesStartDate = document.getElementById('sales-start-date');
+    const salesEndDate = document.getElementById('sales-end-date');
+    const salesRangeText = document.getElementById('sales-range-text');
+    const applySalesRangeBtn = document.getElementById('apply-sales-range');
+    const resetSalesRangeBtn = document.getElementById('reset-sales-range');
+    const salesPeriodBtns = Array.from(document.querySelectorAll('.sales-period-btn'));
     const pagination = document.getElementById('sales-pagination');
     const pageInfo = document.getElementById('sales-page-info');
     const medicineContainer = document.getElementById('sale-medicine-container');
@@ -22,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allInvoices = [];
     let salesSummary = { total_revenue: 0, sale_count: 0, total_profit: 0 };
     let salesPage = 1;
+    let activeSalesPeriod = 'all';
     const perPage = window.RECORDS_PER_PAGE || 10;
 
     // Toast Notification System
@@ -113,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('create-sale-form').reset();
             document.getElementById('create-sale-form').classList.remove('was-validated');
             medicineContainer.innerHTML = '';
+            addMedicineRowBtn.disabled = false;
             document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
             document.body.classList.remove('modal-open');
             document.body.style.overflow = 'auto';
@@ -147,14 +155,97 @@ document.addEventListener('DOMContentLoaded', () => {
         return '₱' + parseFloat(amount || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
-    // Robust JSON parsing: strip BOM and trim before parsing
+    function toDateInputValue(date) {
+        const copy = new Date(date);
+        copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+        return copy.toISOString().slice(0, 10);
+    }
+
+    function formatDisplayDate(value) {
+        if (!value) return '';
+        const date = new Date(`${value}T00:00:00`);
+        return Number.isNaN(date.getTime())
+            ? value
+            : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function getPeriodLabel(period = activeSalesPeriod) {
+        const labels = {
+            all: 'All Time',
+            week: 'Weekly',
+            month: 'Monthly',
+            'six-months': '6 Months',
+            custom: 'Custom Range'
+        };
+        return labels[period] || 'Custom Range';
+    }
+
+    function setActiveSalesPeriod(period) {
+        activeSalesPeriod = period;
+        salesPeriodBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.salesPeriod === period);
+        });
+    }
+
+    function updateSalesRangeUi() {
+        if (!salesStartDate || !salesEndDate) return;
+        if (salesStartDate.value) {
+            salesEndDate.min = salesStartDate.value;
+            if (salesEndDate.value && new Date(salesEndDate.value) < new Date(salesStartDate.value)) {
+                salesEndDate.value = salesStartDate.value;
+            }
+        } else {
+            salesEndDate.removeAttribute('min');
+        }
+        if (salesEndDate.value) {
+            salesStartDate.max = salesEndDate.value;
+        } else {
+            salesStartDate.removeAttribute('max');
+        }
+
+        if (!salesRangeText) return;
+        if (salesStartDate.value && salesEndDate.value) {
+            salesRangeText.textContent = `${getPeriodLabel()}: ${formatDisplayDate(salesStartDate.value)} to ${formatDisplayDate(salesEndDate.value)}`;
+        } else {
+            salesRangeText.textContent = 'Showing all customer sales.';
+        }
+    }
+
+    function applyQuickSalesPeriod(period) {
+        const today = new Date();
+        const start = new Date(today);
+        if (period === 'week') {
+            start.setDate(today.getDate() - 6);
+        } else if (period === 'month') {
+            start.setMonth(today.getMonth() - 1);
+            start.setDate(start.getDate() + 1);
+        } else if (period === 'six-months') {
+            start.setMonth(today.getMonth() - 6);
+            start.setDate(start.getDate() + 1);
+        }
+
+        setActiveSalesPeriod(period);
+        if (period === 'all') {
+            salesStartDate.value = '';
+            salesEndDate.value = '';
+        } else {
+            salesStartDate.value = toDateInputValue(start);
+            salesEndDate.value = toDateInputValue(today);
+        }
+        updateSalesRangeUi();
+        salesPage = 1;
+        loadSales();
+    }
+
+    // Robust JSON parsing: strip BOM and trim before parsing to avoid invalid response errors
     function safeJsonParse(text) {
         try {
             if (typeof text !== 'string') return null;
+            // Remove UTF-8 BOM if present and trim whitespace
             const cleaned = text.replace(/^\uFEFF/, '').trim();
             return JSON.parse(cleaned);
         } catch (e) {
-            console.error('safeJsonParse failed:', e, 'raw:', text && text.slice ? text.slice(0,120) : text);
+            console.error('safeJsonParse failed:', e, 'raw:', text.slice ? text.slice(0, 120) : text);
             throw e;
         }
     }
@@ -178,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredEl.textContent = formatMoney(filteredRevenue);
         countEl.textContent = String(totalCount);
         if (totalProfitEl) totalProfitEl.textContent = formatMoney(netProfit);
-        if (filteredProfitMetaEl) filteredProfitMetaEl.textContent = 'Based on completed customer sales';
+        if (filteredProfitMetaEl) filteredProfitMetaEl.textContent = `Completed customer sales: ${getPeriodLabel().toLowerCase()}`;
         if (filteredCountEl) {
             filteredCountEl.textContent = filtered.length === totalCount
                 ? `${filtered.length} sales`
@@ -257,9 +348,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load sales/invoices
     function loadSales() {
-        const monthFilterEl = document.getElementById('sales-month-filter');
-        const month = monthFilterEl ? monthFilterEl.value : '';
-        const url = 'api/phar_sales.php' + (month ? '?month=' + encodeURIComponent(month) : '');
+        const params = new URLSearchParams();
+        if (salesStartDate?.value && salesEndDate?.value) {
+            params.set('start', salesStartDate.value);
+            params.set('end', salesEndDate.value);
+        }
+        const url = 'api/phar_sales.php' + (params.toString() ? '?' + params.toString() : '');
         fetch(url, { method: 'GET' })
             .then(response => {
                 if (!response.ok) {
@@ -269,14 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(text => {
                 try {
-                    const data = JSON.parse(text);
+                    const data = safeJsonParse(text);
                     tbody.innerHTML = '';
                     if (data.success) {
                         allInvoices = data.data || [];
                         salesSummary = data.summary || salesSummary;
                         salesPage = 1;
                         renderSales();
-                        populateMonthFilterOptions();
+                        updateSalesRangeUi();
                     } else {
                         showToast('Error loading sales: ' + (data.errors ? data.errors.join(', ') : 'Unknown error'), 'error');
                     }
@@ -304,8 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.text())
                 .then(text => {
                     try {
-                    const data = safeJsonParse(text);
-                    if (data && data.success) {
+                        const data = safeJsonParse(text);
+                        if (data && data.success) {
                             const currentValue = selectElement.value;
                             selectElement.innerHTML = '<option value="">Select Medicine</option>';
                             data.data.forEach(med => {
@@ -420,6 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateMedicineNumbers();
             calculateSaleTotals();
         });
+        return row;
     }
 
     function updateMedicineNumbers() {
@@ -575,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Complete Sale';
                     
-                    if (data.success) {
+                    if (data && data.success) {
                         showToast(`Sale completed! Invoice: ${data.data.invoice_number}`, 'success');
                         if (createSaleModal) createSaleModal.hide();
                         loadSales();
@@ -608,8 +703,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.text())
                 .then(text => {
                     try {
-                        const data = safeJsonParse(text);
-                        if (data && data.success) {
+                            const data = safeJsonParse(text);
+                            if (data && data.success) {
                             const invoice = data.data;
                             document.getElementById('view-invoice-number').textContent = invoice.invoice_number;
                             document.getElementById('view-purchase').textContent = invoice.purchase_number || 'Walk-in';
@@ -676,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         voidSaleModal?.hide();
                         loadSales();
                     } else {
-                        showToast('Error: ' + (data.errors ? data.errors.join(', ') : 'Unknown error'), 'error');
+                        showToast('Error: ' + (data && data.errors ? data.errors.join(', ') : 'Unknown error'), 'error');
                     }
                 } catch (e) {
                     console.error('Failed to parse JSON:', text);
@@ -721,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Coming from the Purchases page's "Ring Up" button — open the sale form
-            // pre-loaded with that purchase instead of leaving the pharmacist to find it.
+            // pre-loaded with that purchase instead of leaving the cashier to find it.
             const urlPurchaseId = new URLSearchParams(window.location.search).get('purchase_id');
             if (urlPurchaseId && purchasesById[urlPurchaseId]) {
                 createSaleModal?.show();
@@ -733,8 +828,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // When a pending purchase is selected, replace the item list with a single locked row
-    // matching it — when cleared, go back to a normal free-entry row. Keeps what the
-    // pharmacist sees in sync with what create_sale will actually accept.
+    // matching it — when cleared, go back to a normal free-entry row. Keeps what the cashier
+    // sees in sync with what create_sale will actually accept.
     function applySalePurchaseSelection(purchaseId) {
         medicineContainer.innerHTML = '';
         const purchase = purchaseId ? purchasesById[purchaseId] : null;
@@ -754,31 +849,35 @@ document.addEventListener('DOMContentLoaded', () => {
         applySalePurchaseSelection(e.target.value);
     });
 
-    // ── Month filter ────────────────────────────────────────────────
-    const salesMonthFilter = document.getElementById('sales-month-filter');
-    let monthOptionsPopulated = false;
+    // A fresh "New Sale" open with nothing pre-selected should still start with one row.
+    createSaleModalElement?.addEventListener('show.bs.modal', () => {
+        if (!new URLSearchParams(window.location.search).get('purchase_id') && medicineContainer.children.length === 0) {
+            addSaleMedicineRow();
+        }
+    });
 
-    function populateMonthFilterOptions() {
-        if (!salesMonthFilter || monthOptionsPopulated || salesMonthFilter.value) return;
-        const months = [...new Set(allInvoices.map(inv => (inv.created_at || '').slice(0, 7)).filter(Boolean))]
-            .sort()
-            .reverse();
-        if (months.length === 0) return;
-        const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        months.forEach(m => {
-            const [y, mo] = m.split('-');
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = `${monthNames[parseInt(mo, 10) - 1]} ${y}`;
-            salesMonthFilter.appendChild(opt);
-        });
-        monthOptionsPopulated = true;
-    }
+    salesPeriodBtns.forEach(btn => {
+        btn.addEventListener('click', () => applyQuickSalesPeriod(btn.dataset.salesPeriod || 'all'));
+    });
 
-    salesMonthFilter?.addEventListener('change', () => {
+    salesStartDate?.addEventListener('change', () => {
+        setActiveSalesPeriod('custom');
+        updateSalesRangeUi();
+    });
+    salesEndDate?.addEventListener('change', () => {
+        setActiveSalesPeriod('custom');
+        updateSalesRangeUi();
+    });
+    applySalesRangeBtn?.addEventListener('click', () => {
+        updateSalesRangeUi();
+        if ((salesStartDate?.value && !salesEndDate?.value) || (!salesStartDate?.value && salesEndDate?.value)) {
+            showToast('Please choose both start and end dates.', 'warning');
+            return;
+        }
         salesPage = 1;
         loadSales();
     });
+    resetSalesRangeBtn?.addEventListener('click', () => applyQuickSalesPeriod('all'));
 
     // ── Revenue / Profit drill-down modal ──────────────────────────
     const summaryDrilldownModalEl = document.getElementById('summaryDrilldownModal');
@@ -791,9 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalProfitEl = document.getElementById('summary-drilldown-total-profit');
         if (!body) return;
 
-        const monthLabel = salesMonthFilter && salesMonthFilter.value
-            ? (salesMonthFilter.selectedOptions[0]?.textContent || '')
-            : 'All Time';
+        const monthLabel = salesRangeText?.textContent || getPeriodLabel();
         if (title) {
             title.innerHTML = '<i class="bi bi-bar-chart-line me-2"></i>' +
                 (kind === 'profit' ? 'Profit' : 'Revenue') + ' Breakdown — ' + monthLabel;
