@@ -218,9 +218,10 @@ try {
                         $update_admin_inventory->close();
                     }
 
-                    // If fulfilling an order, mark as fulfilled
+                    // An order-linked sale records delivery; Admin confirms receipt
+                    // and finalizes the order after stock is physically received.
                     if ($order_id > 0) {
-                        $update_order = $conn->prepare("UPDATE orders SET status = 'fulfilled' WHERE id = ?");
+                        $update_order = $conn->prepare("UPDATE orders SET delivery_status = 'delivered', delivered_at = NOW(), delivery_updated_at = NOW() WHERE id = ? AND status = 'accepted'");
                         $update_order->bind_param("i", $order_id);
                         $update_order->execute();
                         $update_order->close();
@@ -228,7 +229,7 @@ try {
 
                     $conn->commit();
                     $response['success'] = true;
-                    $response['message'] = 'Sale created successfully' . ($order_id ? '. Order fulfilled!' : '');
+                    $response['message'] = 'Sale created successfully' . ($order_id ? '. Order marked delivered and awaiting admin confirmation.' : '');
                     $response['invoice_id'] = $invoice_id;
                 } catch (Exception $e) {
                     $conn->rollback();
@@ -467,6 +468,8 @@ try {
             $offset = $pagination['offset'];
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
             $payment_filter = isset($_GET['payment_method']) ? trim($_GET['payment_method']) : '';
+            $start_date = isset($_GET['start']) ? trim($_GET['start']) : '';
+            $end_date = isset($_GET['end']) ? trim($_GET['end']) : '';
 
             $where = 'WHERE ss.supplier_id = ?';
             $params = [$supplier_id];
@@ -483,6 +486,12 @@ try {
                 $where .= ' AND si.payment_method = ?';
                 $params[] = $payment_filter;
                 $types .= 's';
+            }
+            if ($start_date !== '' && $end_date !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date) && $start_date <= $end_date) {
+                $where .= ' AND DATE(si.created_at) BETWEEN ? AND ?';
+                $params[] = $start_date;
+                $params[] = $end_date;
+                $types .= 'ss';
             }
 
             $countSql = "

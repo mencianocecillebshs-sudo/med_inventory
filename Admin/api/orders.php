@@ -554,7 +554,7 @@ try {
 
             if (!$ord) throw new Exception('Order not found');
             if ($ord['status'] === 'fulfilled') throw new Exception('Order has already been finalized');
-            if ($ord['status'] !== 'accepted' || $ord['delivery_status'] !== 'delivered') {
+            if (!in_array($ord['status'], ['accepted', 'delivered'], true) || $ord['delivery_status'] !== 'delivered') {
                 throw new Exception('The supplier must mark this accepted order as delivered before admin confirmation');
             }
 
@@ -694,7 +694,7 @@ try {
                     fulfilled_date = NOW(),
                     paid_date = NOW(),
                     total_amount = ?
-                WHERE id = ? AND status = 'accepted'
+                WHERE id = ? AND status IN ('accepted', 'delivered')
             ");
             if (!$upd_stmt) throw new Exception('Order final update prepare failed: ' . $conn->error);
             $upd_stmt->bind_param('di', $order_total, $order_id);

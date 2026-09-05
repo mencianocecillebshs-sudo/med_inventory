@@ -319,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const expected = (filterExpected ? filterExpected.value : "") || "";
         return allOrders.filter(order => {
             const text = getOrderSearchText(order);
-            return (!status   || order.status === status)
+            return (!status   || order.status === status || order.delivery_status === status)
                 && (!search   || text.includes(search))
                 && (!expected || (order.expected_delivery && order.expected_delivery <= expected));
         });
@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const activeStatuses = ["accepted", "shipped", "out_for_delivery"];
             let actionBtn = "";
             const isActive = activeStatuses.includes(order.status) || activeStatuses.includes(order.delivery_status);
-            const isAlreadyDone = order.delivery_status === "delivered" || order.status === "delivered" || order.status === "fulfilled";
+            const isAlreadyDone = order.status === "fulfilled";
             const isPending = order.status === "pending" || order.status === "ordered";
             if (order.delivery_status === "delivered" && order.status !== "fulfilled") {
                 actionBtn = '<button type="button" class="btn-mark-delivered js-confirm-received" data-order-id="' + esc(orderId) + '"><i class="bi bi-check2-circle me-1"></i>Confirm Received</button>';
