@@ -467,6 +467,8 @@ try {
             $offset = $pagination['offset'];
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
             $payment_filter = isset($_GET['payment_method']) ? trim($_GET['payment_method']) : '';
+            $start_date = isset($_GET['start']) ? trim($_GET['start']) : '';
+            $end_date = isset($_GET['end']) ? trim($_GET['end']) : '';
 
             $where = 'WHERE ss.supplier_id = ?';
             $params = [$supplier_id];
@@ -483,6 +485,12 @@ try {
                 $where .= ' AND si.payment_method = ?';
                 $params[] = $payment_filter;
                 $types .= 's';
+            }
+            if ($start_date !== '' && $end_date !== '') {
+                $where .= ' AND si.created_at >= ? AND si.created_at < DATE_ADD(?, INTERVAL 1 DAY)';
+                $params[] = $start_date;
+                $params[] = $end_date;
+                $types .= 'ss';
             }
 
             $countSql = "
@@ -515,16 +523,26 @@ try {
             $filteredProfit = (float)($filteredSummary['filtered_profit'] ?? 0);
             $filteredRevStmt->close();
 
+            $totalWhere = 'WHERE supplier_id = ?';
+            $totalParams = [$supplier_id];
+            $totalTypes = 'i';
+            if ($start_date !== '' && $end_date !== '') {
+                $totalWhere .= ' AND DATE(created_at) BETWEEN ? AND ?';
+                $totalParams[] = $start_date;
+                $totalParams[] = $end_date;
+                $totalTypes .= 'ss';
+            }
+
             $totalRevStmt = $conn->prepare("
                 SELECT 
                     COALESCE(SUM(line_total), 0) AS total_revenue,
                     COALESCE(SUM(line_total - (unit_price * quantity)), 0) AS total_profit,
                     COUNT(DISTINCT invoice_id) AS sale_count
                 FROM supplier_sales
-                WHERE supplier_id = ?
+                $totalWhere
             ");
             if (!$totalRevStmt) throw new Exception('Total revenue prepare failed: ' . $conn->error);
-            $totalRevStmt->bind_param('i', $supplier_id);
+            $totalRevStmt->bind_param($totalTypes, ...$totalParams);
             $totalRevStmt->execute();
             $totalRevRow = $totalRevStmt->get_result()->fetch_assoc() ?: [];
             $totalRevStmt->close();

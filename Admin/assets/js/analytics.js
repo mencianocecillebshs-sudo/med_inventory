@@ -17,16 +17,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let demandChart, topChart, trendsChart, stockChart;
     let loadedCharts = { demand: false, top: false, trends: false, stock: false };
+    const STORAGE_KEY = 'admin_analytics_date_range';
+
+    const getSavedDateRange = () => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+            if (!saved?.start || !saved?.end || new Date(saved.start) > new Date(saved.end)) return null;
+            return saved;
+        } catch (error) {
+            return null;
+        }
+    };
+
+    const saveDateRange = () => {
+        if (!startDate?.value || !endDate?.value) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ start: startDate.value, end: endDate.value }));
+    };
     /* ------------------------------------------------------------------ *
      *  Initialise date pickers
      * ------------------------------------------------------------------ */
     const initializeDateRange = async () => {
-        const params = new URLSearchParams(window.location.search);
-        const initialStart = params.get('start') || '';
-        const initialEnd = params.get('end') || '';
-
-        if (startDate) startDate.value = initialStart;
-        if (endDate) endDate.value = initialEnd;
+        const end = new Date();
+        end.setHours(0, 0, 0, 0);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 13);
+        const formatDate = date => date.toISOString().split('T')[0];
+        startDate.value = formatDate(start);
+        endDate.value = formatDate(end);
     };
 
     /* ------------------------------------------------------------------ *
@@ -568,6 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const s = resolved.start;
         const e = resolved.end;
+        saveDateRange();
         loadedCharts = { demand: false, top: false, trends: false, stock: false };
 
         loadDemand(s, e);

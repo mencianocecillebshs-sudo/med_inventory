@@ -669,15 +669,15 @@ if (!isset($_SESSION['user_id'])) {
             <div>
                 <div class="card">
                     <div class="card-head">
-                        <h5><i class="bi bi-graph-up"></i>Sales &amp; demand (this month)</h5>
-                        <a href="analytics.php?start=<?php echo date('Y-m-01'); ?>&end=<?php echo date('Y-m-t'); ?>" class="link-btn">Open analytics <i class="bi bi-arrow-right"></i></a>
+                        <h5><i class="bi bi-graph-up"></i>Sales &amp; demand (last 14 days)</h5>
+                        <a href="analytics.php" class="link-btn">Open analytics <i class="bi bi-arrow-right"></i></a>
                     </div>
                     <div style="height:220px;"><canvas id="trendChart"></canvas></div>
                 </div>
 
                 <div class="card">
                     <div class="card-head">
-                        <h5><i class="bi bi-trophy"></i>Top 10 medicines (this month)</h5>
+                        <h5><i class="bi bi-trophy"></i>Top 10 medicines (last 14 days)</h5>
                         <a href="reports.php" class="link-btn">View all</a>
                     </div>
                     <div id="topMeds">

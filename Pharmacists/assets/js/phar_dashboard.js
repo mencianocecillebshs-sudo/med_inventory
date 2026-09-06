@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 const labels = data.map(item => item.name);
-                const values = data.map(item => Number(item.days_until_empty) || 0);
+                const values = data.map(item => item.days_until_empty == null ? null : Number(item.days_until_empty));
                 const colors = data.map(item => item.status === 'critical' ? chartColors().red : chartColors().warn);
                 renderChart('dashboardStockForecastChart', {
                     type: 'bar',

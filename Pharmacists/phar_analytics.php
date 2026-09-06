@@ -727,7 +727,9 @@ if (!isset($_SESSION['user_id'])) {
                         return;
                     }
                     const labels = d.map(x => x.name);
-                    const days = d.map(x => x.has_demand_history ? Number(x.days_until_empty) : 0);
+                    // No demand history means depletion cannot be forecast;
+                    // keep it null so the chart does not imply zero days left.
+                    const days = d.map(x => x.has_demand_history ? Number(x.days_until_empty) : null);
                     const colors = d.map(x => x.status === 'critical' ? '#ef4444' : x.status === 'warning' ? '#f59e0b' : '#10b981');
 
                     if (stockChart) stockChart.destroy();
@@ -1217,7 +1219,7 @@ if (!isset($_SESSION['user_id'])) {
                 loadDemand(s, e);
                 loadTop(s, e);
                 loadTrends(s, e);
-                loadLowStock();
+                loadLowStock(s, e);
                 loadModelForecasts(s, e);
                 setTimeout(updateCoreInsights, 800);
                 showToast('Analytics updated', 'success');
@@ -1273,7 +1275,7 @@ if (!isset($_SESSION['user_id'])) {
                         loadDemand(s, e);
                         loadTop(s, e);
                         loadTrends(s, e);
-                        loadLowStock();
+                        loadLowStock(s, e);
                     }
                 }
             });

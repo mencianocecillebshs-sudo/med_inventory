@@ -114,6 +114,7 @@ function buildRequest(mysqli $conn, int $userId): ?array {
     $stmt->close();
 
     $items = [];
+    $hasOrderableItems = false;
     foreach ($meds as $med) {
         $medicineId = (int)$med['id'];
 
@@ -133,28 +134,6 @@ function buildRequest(mysqli $conn, int $userId): ?array {
             $existing = $dup->get_result()->fetch_assoc();
             $dup->close();
             if ($existing) {
-                $existingSupplierLabel = trim(
-                    (($existing['supplier_company'] ?: $existing['supplier_name']) ?? '') .
-                    (!empty($existing['supplier_name']) ? ' - ' . $existing['supplier_name'] : ''),
-                    ' -'
-                );
-                if ($existingSupplierLabel === '') $existingSupplierLabel = 'Unknown supplier';
-                $items[] = [
-                    'medicine_id' => $medicineId,
-                    'medicine_name' => $med['name'],
-                    'current_quantity' => (int)$med['quantity'],
-                    'supplier_id' => (int)($existing['supplier_id'] ?? 0),
-                    'supplier_user_id' => 0,
-                    'supplier_name' => $existingSupplierLabel,
-                    'is_preferred' => 0,
-                    'supplier_stock' => 0,
-                    'quantity' => 0,
-                    'unit_price' => 0,
-                    'subtotal' => 0,
-                    'min_order_quantity' => 0,
-                    'can_order' => false,
-                    'reason' => 'Order #' . (int)$existing['id'] . ' (' . ucfirst($existing['status']) . ')'
-                ];
                 continue;
             }
         }
@@ -267,9 +246,10 @@ function buildRequest(mysqli $conn, int $userId): ?array {
             'can_order' => true,
             'reason' => ''
         ];
+        $hasOrderableItems = true;
     }
 
-    if (!$items) return null;
+    if (!$items || !$hasOrderableItems) return null;
     $total = array_sum(array_map(fn($item) => !empty($item['can_order']) ? (float)$item['subtotal'] : 0, $items));
     $payload = ['threshold' => $threshold, 'total_amount' => $total, 'items' => $items];
     $json = json_encode($payload, JSON_UNESCAPED_UNICODE);

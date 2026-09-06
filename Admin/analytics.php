@@ -617,8 +617,13 @@ if (!isset($_SESSION['user_id'])) {
         };
 
         const initializeDateRange = async () => {
-            if (startDate) startDate.value = '';
-            if (endDate) endDate.value = '';
+            const end = new Date();
+            end.setHours(0, 0, 0, 0);
+            const start = new Date(end);
+            start.setDate(start.getDate() - 13);
+            const formatDate = date => date.toISOString().split('T')[0];
+            startDate.value = formatDate(start);
+            endDate.value = formatDate(end);
             updateDateRangeUi();
         };
 
@@ -1522,7 +1527,7 @@ if (!isset($_SESSION['user_id'])) {
         };
 
         initializeDateRange().then(() => {
-            setTimeout(showInitialEmptyState, 150);
+            setTimeout(loadAll, 150);
         });
 
         applyBtn.addEventListener('click', () => {

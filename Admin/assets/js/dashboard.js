@@ -21,10 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Chart.js instance ref
     let trendChartInstance = null;
 
-    function currentMonthRange() {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    function currentFourteenDayRange() {
+        const end = new Date();
+        end.setHours(0, 0, 0, 0);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 13);
         const iso = date => {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -341,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Fetch top medicines
     function fetchTopMedicines() {
         if (!topMedsEl) return;
-        const range = currentMonthRange();
+        const range = currentFourteenDayRange();
         fetch(`api/analytics.php?action=top_medicines&limit=10&start=${range.start}&end=${range.end}`)
             .then(r => r.json())
             .then(res => {
@@ -452,12 +453,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     autoOrderBannerReject?.addEventListener('click', () => handleAutoOrderAction('reject'));
 
-    // 5. Render trend chart (14 Days Sales vs Forecast)
+    // 5. Render trend chart (latest 14 days of sales vs forecast)
     function loadTrendChart() {
         const canvas = document.getElementById('trendChart');
         if (!canvas) return;
 
-        const range = currentMonthRange();
+        const endDate = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 13);
+        const formatDate = date => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        const range = { start: formatDate(startDate), end: formatDate(endDate) };
         fetch(`api/analytics.php?action=daily_trends&start=${range.start}&end=${range.end}`)
             .then(r => r.json())
             .then(res => {

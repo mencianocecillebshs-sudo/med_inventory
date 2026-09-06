@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const saleMedicineContainer = document.getElementById('sale-medicine-container');
     const addMedicineBtn = document.getElementById('add-sale-medicine-row-btn');
     const orderDropdown = document.getElementById('order-dropdown');
+    const salesStartDate = document.getElementById('sales-start-date');
+    const salesEndDate = document.getElementById('sales-end-date');
+    const salesRangeText = document.getElementById('sales-range-text');
+    const applySalesRangeBtn = document.getElementById('apply-sales-range');
+    const resetSalesRangeBtn = document.getElementById('reset-sales-range');
+    const salesPeriodBtns = Array.from(document.querySelectorAll('.sales-period-btn'));
 
     let medicineRowCounter = 0;
     let allMedicines = [];
@@ -14,6 +20,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const U = window.SupUtils;
     const sym = () => U ? U.currencySymbol() : '₱';
     const fmt = (v) => U ? U.formatCurrency(v) : sym() + parseFloat(v || 0).toFixed(2);
+    let activeSalesPeriod = 'all';
+
+    function toDateInputValue(date) {
+        const copy = new Date(date);
+        copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+        return copy.toISOString().slice(0, 10);
+    }
+
+    function updateSalesRangeUi() {
+        if (!salesStartDate || !salesEndDate) return;
+        if (salesStartDate.value) salesEndDate.min = salesStartDate.value;
+        else salesEndDate.removeAttribute('min');
+        if (salesEndDate.value) salesStartDate.max = salesEndDate.value;
+        else salesStartDate.removeAttribute('max');
+        if (salesRangeText) {
+            salesRangeText.textContent = salesStartDate.value && salesEndDate.value
+                ? `${activeSalesPeriod === 'custom' ? 'Custom Range' : activeSalesPeriod}: ${salesStartDate.value} to ${salesEndDate.value}`
+                : 'Showing all supplier sales.';
+        }
+    }
+
+    function applySalesPeriod(period, shouldLoad = true) {
+        const today = new Date();
+        const start = new Date(today);
+        if (period === 'week') start.setDate(today.getDate() - 6);
+        else if (period === 'month') start.setMonth(today.getMonth() - 1);
+        else if (period === 'six-months') start.setMonth(today.getMonth() - 6);
+        activeSalesPeriod = period;
+        salesPeriodBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.salesPeriod === period));
+        if (period === 'all') {
+            salesStartDate.value = '';
+            salesEndDate.value = '';
+        } else {
+            salesStartDate.value = toDateInputValue(start);
+            salesEndDate.value = toDateInputValue(today);
+        }
+        updateSalesRangeUi();
+        currentPage = 1;
+        if (shouldLoad) loadSales();
+    }
 
     // Toast notification
     function showToast(message, type = 'success') {
@@ -84,6 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (search) params.set('search', search);
         if (payment) params.set('payment_method', payment);
+        if (salesStartDate?.value && salesEndDate?.value) {
+            params.set('start', salesStartDate.value);
+            params.set('end', salesEndDate.value);
+        }
 
         fetchJson('api/sup_sales.php?' + params.toString())
             .then(data => {
@@ -248,10 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="remove-row" onclick="removeMedicineRow(${medicineRowCounter})" style="display: none;"> <!-- Hidden for order fulfillment -->
                 <i class="bi bi-x"></i>
             </button>
-            <div class="medicine-row-header">Medicine #${rowNum} (Order Item)</div>
+            <div class="medicine-row-header">Items #${rowNum} (Order Item)</div>
             <div class="row">
                 <div class="col-md-6 mb-2">
-                    <label class="form-label">Medicine</label>
+                    <label class="form-label">Item</label>
                     <input type="text" class="form-control" value="${escapeHtml(item.medicine_name)}" readonly>
                     <input type="hidden" class="medicine-id" data-row="${medicineRowCounter}" value="${item.medicine_id}">
                 </div>
@@ -291,10 +341,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="remove-row" onclick="removeMedicineRow(${medicineRowCounter})">
                 <i class="bi bi-x"></i>
             </button>
-            <div class="medicine-row-header">Medicine #${medicineRowCounter}</div>
+            <div class="medicine-row-header">Item #${medicineRowCounter}</div>
             <div class="row">
                 <div class="col-md-6 mb-2">
-                    <label class="form-label">Medicine</label>
+                    <label class="form-label">Items</label>
                     <input type="text" class="form-control medicine-name" list="medicine-list" data-row="${medicineRowCounter}" required placeholder="Search medicine...">
                     <datalist id="medicine-list"></datalist>
                     <input type="hidden" class="medicine-id" data-row="${medicineRowCounter}">
@@ -568,6 +618,18 @@ document.addEventListener('DOMContentLoaded', () => {
             loadSales();
         });
     }
+
+    salesPeriodBtns.forEach(btn => btn.addEventListener('click', () => applySalesPeriod(btn.dataset.salesPeriod)));
+    applySalesRangeBtn?.addEventListener('click', () => {
+        activeSalesPeriod = 'custom';
+        salesPeriodBtns.forEach(btn => btn.classList.remove('active'));
+        updateSalesRangeUi();
+        currentPage = 1;
+        loadSales();
+    });
+    resetSalesRangeBtn?.addEventListener('click', () => applySalesPeriod('all'));
+    salesStartDate?.addEventListener('change', () => { activeSalesPeriod = 'custom'; updateSalesRangeUi(); });
+    salesEndDate?.addEventListener('change', () => { activeSalesPeriod = 'custom'; updateSalesRangeUi(); });
 
     // Add medicine button
     if (addMedicineBtn) {
