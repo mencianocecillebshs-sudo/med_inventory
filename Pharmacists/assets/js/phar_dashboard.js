@@ -1,504 +1,70 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const refreshButton = document.getElementById('refresh-btn');
-    const inventoryLoading = document.getElementById('inventory-loading');
-    const alertsLoading = document.getElementById('alerts-loading');
-    const suppliersLoading = document.getElementById('suppliers-loading');
-    const topMedicinesLoading = document.getElementById('top-medicines-loading');
-    const toggleButton = document.getElementById('toggle-sidebar-mobile');
-    const chartRefs = {};
+    // DOM Elements
+    const dateTimeEl = document.getElementById('current-date-time');
+    const alertsListEl = document.getElementById('alerts');
+    const alertsCountEl = document.getElementById('alerts-count');
+    const topMedsEl = document.getElementById('topMeds');
+    const supplierListEl = document.getElementById('supplier-companies');
+    const activityListEl = document.getElementById('activity-list');
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar-mobile');
+    const autoOrderSummaryModalEl = document.getElementById('autoOrderSummaryModal');
+    const autoOrderSummaryBody = document.getElementById('auto-order-summary-body');
+    const autoOrderSummaryTotal = document.getElementById('auto-order-summary-total');
+    const confirmAutoOrderBtn = document.getElementById('confirm-auto-order-btn');
+    const autoOrderBanner = document.getElementById('auto-order-banner');
+    const autoOrderBannerSub = document.getElementById('auto-order-banner-sub');
+    const autoOrderBannerAccept = document.getElementById('auto-order-banner-accept');
+    const autoOrderBannerReject = document.getElementById('auto-order-banner-reject');
+    const autoOrderSummaryModal = autoOrderSummaryModalEl ? bootstrap.Modal.getOrCreateInstance(autoOrderSummaryModalEl) : null;
+    let pendingAutoOrderRequest = null;
 
-    document.getElementById('open-analytics-page')?.addEventListener('click', () => {
-        window.location.href = 'phar_analytics.php';
+    // Chart.js instance ref
+    let trendChartInstance = null;
+
+    function currentFourteenDayRange() {
+        const end = new Date();
+        end.setHours(0, 0, 0, 0);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 13);
+        const iso = date => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+        return { start: iso(start), end: iso(end) };
+    }
+
+    document.querySelectorAll('.dashboard-link[data-href]').forEach(card => {
+        const openCard = () => {
+            window.location.href = card.dataset.href;
+        };
+        card.addEventListener('click', openCard);
+        card.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openCard();
+            }
+        });
     });
 
-    function chartColors() {
-        const dark = document.body.classList.contains('dark-mode') || document.documentElement.classList.contains('dark-mode');
-        return {
-            text: dark ? '#e2e8f0' : '#334155',
-            grid: dark ? 'rgba(148, 163, 184, 0.16)' : 'rgba(15, 63, 40, 0.10)',
-            green: '#1b5e3f',
-            mint: '#6ee7b7',
-            warn: '#f59e0b',
-            red: '#ef4444',
-            blue: '#0891b2'
-        };
+    // Mobile Sidebar toggle
+    if (toggleSidebarBtn) {
+        toggleSidebarBtn.addEventListener('click', () => {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        });
     }
 
-    function renderChart(id, config) {
-        const canvas = document.getElementById(id);
-        if (!canvas || typeof Chart === 'undefined') return;
-        if (chartRefs[id]) chartRefs[id].destroy();
-        chartRefs[id] = new Chart(canvas, config);
-    }
-
-    function renderEmptyChart(id, message) {
-        const canvas = document.getElementById(id);
-        if (!canvas) return;
-        if (chartRefs[id]) chartRefs[id].destroy();
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '14px Inter, sans-serif';
-        ctx.fillStyle = chartColors().text;
-        ctx.textAlign = 'center';
-        ctx.fillText(message, canvas.width / 2, canvas.height / 2);
-    }
-
-    // -------------------------------------------------------------------
-    // Fetch the user's current low_stock_threshold from settings.
-    // Returns a Promise that resolves to a number (fallback: 10).
-    // -------------------------------------------------------------------
-    function fetchLowStockThreshold() {
-        return fetch('api/phar_settings.php', { credentials: 'same-origin' })
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then(res => {
-                const val = res?.data?.low_stock_threshold;
-                return (res.success && val && !isNaN(val) && parseInt(val) > 0)
-                    ? parseInt(val)
-                    : 10;
-            })
-            .catch(err => {
-                console.warn('Could not fetch threshold from settings, using default 10:', err);
-                return 10;
-            });
-    }
-
-    // -------------------------------------------------------------------
-    // Demand chart
-    // -------------------------------------------------------------------
-    function loadDashboardDemandChart() {
-        fetch('api/phar_analytics.php?action=daily_trends')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(res => {
-                if (!res.success || !Array.isArray(res.data)) {
-                    renderEmptyChart('dashboardDemandChart', 'No demand data');
-                    return;
-                }
-                const labels = res.data.map(item => item.date);
-                const demand = res.data.map(item => Number(item.total_demand) || 0);
-                if (labels.length === 0) {
-                    renderEmptyChart('dashboardDemandChart', 'No demand data');
-                    return;
-                }
-                renderChart('dashboardDemandChart', {
-                    type: 'line',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'Demand',
-                            data: demand,
-                            borderColor: chartColors().green,
-                            backgroundColor: 'rgba(34,197,94,0.14)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: chartColors().text }, grid: { display: false } },
-                            y: { ticks: { color: chartColors().text }, grid: { color: chartColors().grid }, beginAtZero: true }
-                        }
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Dashboard demand chart error:', error);
-                renderEmptyChart('dashboardDemandChart', 'Error loading graph');
-            });
-    }
-
-    function loadDashboardTrendsChart() {
-        fetch('api/phar_analytics.php?action=daily_trends')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(res => {
-                if (!res.success || !Array.isArray(res.data)) {
-                    renderEmptyChart('dashboardTrendsChart', 'No trend data');
-                    return;
-                }
-                const labels = res.data.map(item => item.date);
-                const demand = res.data.map(item => Number(item.total_demand) || 0);
-                const supply = res.data.map(item => Number(item.total_supply) || 0);
-                if (labels.length === 0) {
-                    renderEmptyChart('dashboardTrendsChart', 'No trend data');
-                    return;
-                }
-                renderChart('dashboardTrendsChart', {
-                    type: 'line',
-                    data: {
-                        labels,
-                        datasets: [
-                            {
-                                label: 'Supply',
-                                data: supply,
-                                borderColor: chartColors().blue,
-                                backgroundColor: 'rgba(2,132,199,0.13)',
-                                fill: true,
-                                tension: 0.3,
-                                pointRadius: 0
-                            },
-                            {
-                                label: 'Demand',
-                                data: demand,
-                                borderColor: chartColors().red,
-                                backgroundColor: 'rgba(239,68,68,0.13)',
-                                fill: true,
-                                tension: 0.3,
-                                pointRadius: 0
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'top', labels: { color: chartColors().text } } },
-                        scales: {
-                            x: { ticks: { color: chartColors().text }, grid: { display: false } },
-                            y: { ticks: { color: chartColors().text }, grid: { color: chartColors().grid }, beginAtZero: true }
-                        }
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Dashboard trends chart error:', error);
-                renderEmptyChart('dashboardTrendsChart', 'Error loading graph');
-            });
-    }
-
-    function loadDashboardStockForecastChart() {
-        fetchLowStockThreshold()
-            .then(threshold => fetch(`api/phar_analytics.php?action=low_stock_forecast&threshold=${threshold}`))
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.json();
-            })
-            .then(res => {
-                if (!res.success || !Array.isArray(res.data)) {
-                    renderEmptyChart('dashboardStockForecastChart', 'No low-stock data');
-                    return;
-                }
-                const data = res.data.slice(0, 5);
-                if (data.length === 0) {
-                    renderEmptyChart('dashboardStockForecastChart', 'No low-stock data');
-                    return;
-                }
-                const labels = data.map(item => item.name);
-                const values = data.map(item => Number(item.days_until_empty) || 0);
-                const colors = data.map(item => item.status === 'critical' ? chartColors().red : chartColors().warn);
-                renderChart('dashboardStockForecastChart', {
-                    type: 'bar',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'Days until empty',
-                            data: values,
-                            backgroundColor: colors,
-                            borderRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        indexAxis: 'y',
-                        scales: {
-                            x: { ticks: { color: chartColors().text }, grid: { color: chartColors().grid }, beginAtZero: true },
-                            y: { ticks: { color: chartColors().text }, grid: { display: false } }
-                        }
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Dashboard low stock chart error:', error);
-                renderEmptyChart('dashboardStockForecastChart', 'Error loading graph');
-            });
-    }
-
-    // -------------------------------------------------------------------
-    // Quick Insights card
-    // -------------------------------------------------------------------
-    function loadDashboardQuickInsights() {
-        try {
-            const demandEl = document.getElementById('demand-forecast-value');
-            const supplyEl = document.getElementById('supply-demand-value');
-            const lowStockEl = document.getElementById('low-stock-forecast-value');
-            const topMedEl = document.getElementById('top-medicine-value');
-
-            if (demandEl) demandEl.textContent = 'Loading...';
-            if (supplyEl) supplyEl.textContent = 'Loading...';
-            if (lowStockEl) lowStockEl.textContent = 'Loading...';
-            if (topMedEl) topMedEl.textContent = 'Loading...';
-
-            const loadAnalytics = (action, params = {}) => {
-                const query = new URLSearchParams(params);
-                const url = `api/phar_analytics.php?action=${encodeURIComponent(action)}&${query.toString()}`;
-                return fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.json();
-                    });
-            };
-
-            Promise.all([
-                loadAnalytics('daily_trends'),
-                fetchLowStockThreshold().then(threshold => loadAnalytics('low_stock_forecast', { threshold })),
-                loadAnalytics('top_medicines', { limit: 1 })
-            ])
-            .then(([trendsRes, lowStockRes, topRes]) => {
-                if (trendsRes.success && Array.isArray(trendsRes.data)) {
-                    const demandTotal = trendsRes.data.reduce((sum, item) => sum + (Number(item.total_demand) || 0), 0);
-                    const supplyTotal = trendsRes.data.reduce((sum, item) => sum + (Number(item.total_supply) || 0), 0);
-                    if (demandEl) demandEl.innerHTML = `<strong>${demandTotal}</strong><span class="badge bg-success">Demand</span>`;
-                    if (supplyEl) supplyEl.innerHTML = `<strong>${supplyTotal}</strong><span class="badge bg-info">Supply</span>`;
-                } else {
-                    if (demandEl) demandEl.innerHTML = '<strong>0</strong><span class="badge bg-success">Demand</span>';
-                    if (supplyEl) supplyEl.innerHTML = '<strong>0</strong><span class="badge bg-info">Supply</span>';
-                }
-
-                if (lowStockRes.success && Array.isArray(lowStockRes.data)) {
-                    const count = lowStockRes.data.length;
-                    if (lowStockEl) {
-                        const label = count === 0 ? 'No urgent items' : `${count} at risk`;
-                        lowStockEl.innerHTML = `<strong>${count}</strong><span class="badge bg-warning text-dark">Low Stock</span><br><small>${label}</small>`;
-                    }
-                } else if (lowStockEl) {
-                    lowStockEl.innerHTML = '<strong>0</strong><span class="badge bg-warning text-dark">Low Stock</span><br><small>No urgent items</small>';
-                }
-
-                if (topRes.success && Array.isArray(topRes.data) && topRes.data.length > 0) {
-                    const medicine = topRes.data[0];
-                    if (topMedEl) {
-                        topMedEl.innerHTML = `<strong>${medicine.medicine_name || 'Unknown'}</strong><span class="badge bg-primary">Top</span><br><small>${Number(medicine.total_demand || 0)} demand</small>`;
-                    }
-                } else if (topMedEl) {
-                    topMedEl.innerHTML = '<strong>No data</strong><span class="badge bg-secondary">Top</span>';
-                }
-            })
-            .catch(err => {
-                console.error('Quick insights analytics error:', err);
-                if (demandEl) demandEl.textContent = 'Data unavailable';
-                if (supplyEl) supplyEl.textContent = 'Data unavailable';
-                if (lowStockEl) lowStockEl.textContent = 'Data unavailable';
-                if (topMedEl) topMedEl.textContent = 'Data unavailable';
-            });
-        } catch (e) {
-            console.error('CRITICAL ERROR in loadDashboardQuickInsights:', e);
-        }
-    }
-
-    // -------------------------------------------------------------------
-    // Load inventory totals + expiring medicines (replaces low-stock list)
-    // -------------------------------------------------------------------
-    function loadInventory() {
-        fetch('api/phar_inventory.php')
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then(res => {
-                if (!res.success) throw new Error('API error');
-
-                const totalEl = document.getElementById('total-medicines');
-                if (totalEl) {
-                    const count = Array.isArray(res.expiringItems) ? res.expiringItems.length : 0;
-                    totalEl.textContent = count;
-                }
-
-                // ── Expiring Medicines list ──────────────────────────────
-                const expiringContainer = document.getElementById('expiring-items');
-                if (expiringContainer) {
-                    expiringContainer.innerHTML = '';
-
-                    if (Array.isArray(res.expiringItems) && res.expiringItems.length) {
-                        res.expiringItems.forEach(item => {
-                            let badgeClass, badgeLabel;
-                            if (item.status === 'expired') {
-                                badgeClass = 'bg-danger';
-                                badgeLabel = 'Expired';
-                            } else if (item.status === 'critical') {
-                                badgeClass = 'bg-danger';
-                                badgeLabel = `${item.days}d left`;
-                            } else if (item.status === 'warning') {
-                                badgeClass = 'bg-warning text-dark';
-                                badgeLabel = `${item.days}d left`;
-                            } else {
-                                badgeClass = 'bg-secondary';
-                                badgeLabel = `${item.days}d left`;
-                            }
-
-                            // Format expiry date as "MMM YYYY" e.g. "Nov 2026"
-                            const expDate = new Date(item.expiry_date);
-                            const expFormatted = expDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-
-                            const div = document.createElement('div');
-                            div.className = 'expiring-item';
-                            div.innerHTML = `
-                                <span class="exp-icon"><i class="bi bi-calendar-x"></i></span>
-                                <span class="item-name">${item.name}</span>
-                                <span class="exp-date">${expFormatted}</span>
-                                <span class="badge ${badgeClass} ms-1">${badgeLabel}</span>
-                            `;
-                            expiringContainer.appendChild(div);
-                        });
-                    } else {
-                        expiringContainer.innerHTML = '<div class="empty-state"><i class="bi bi-calendar-check"></i><span>No medicines expiring soon</span></div>';
-                    }
-                }
-            })
-            .catch(err => {
-                console.error('Inventory load error:', err);
-                const totalEl = document.getElementById('total-medicines');
-                if (totalEl) totalEl.textContent = 'Error';
-                const expiringContainer = document.getElementById('expiring-items');
-                if (expiringContainer) expiringContainer.innerHTML = '<div class="empty-state danger"><i class="bi bi-exclamation-triangle"></i><span>Error loading data</span></div>';
-            })
-            .finally(() => {
-                if (inventoryLoading) inventoryLoading.style.display = 'none';
-            });
-    }
-
-    function loadSuppliers() {
-        fetch('api/phar_dashboard_suppliers.php')
-            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-            .then(res => {
-                if (!res.success) throw new Error('API error');
-
-                const totalEl = document.getElementById('total-suppliers');
-                const suppliers = Array.isArray(res.data) ? res.data : [];
-                if (totalEl) totalEl.textContent = suppliers.length;
-
-                const active = suppliers.filter(s => s.bought_quantity > 0).length;
-                const inactive = suppliers.length - active;
-                renderChart('supplierStatusChart', {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Active', 'Inactive'],
-                        datasets: [{
-                            data: [active, inactive],
-                            backgroundColor: [chartColors().green, chartColors().red],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: chartColors().text } } },
-                        cutout: '65%'
-                    }
-                });
-
-                const container = document.getElementById('supplier-companies');
-                if (container) {
-                    container.innerHTML = '';
-                    if (suppliers.length) {
-                        suppliers.forEach(sup => {
-                            const div = document.createElement('div');
-                            div.className = 'company-item';
-                            div.innerHTML = `<strong>${sup.company}</strong><br><small>${sup.name}</small>`;
-                            container.appendChild(div);
-                        });
-                    } else {
-                        container.innerHTML = '<div class="empty-state">No suppliers</div>';
-                    }
-                }
-            })
-            .catch(err => {
-                console.error('Suppliers load error:', err);
-                const totalEl = document.getElementById('total-suppliers');
-                if (totalEl) totalEl.textContent = 'Error';
-                const container = document.getElementById('supplier-companies');
-                if (container) container.innerHTML = '<div class="empty-state danger">Error loading suppliers</div>';
-            })
-            .finally(() => { if (suppliersLoading) suppliersLoading.style.display = 'none'; });
-    }
-
-    function loadAlerts() {
-        fetch('api/phar_notifications.php?read=0')
-            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-            .then(res => {
-                const alertsContainer = document.getElementById('alerts');
-                if (!alertsContainer) return;
-                alertsContainer.innerHTML = '';
-
-                const items = Array.isArray(res.data) ? res.data : [];
-                if (!items.length) {
-                    alertsContainer.innerHTML = '<div class="empty-state"><i class="bi bi-bell-slash"></i><span>No alerts</span></div>';
-                    return;
-                }
-                items.forEach(alert => {
-                    const div = document.createElement('div');
-                    const alertClass = alert.type === 'danger' ? 'alert-danger' : 'alert-warning';
-                    div.className = `alert ${alertClass}`;
-                    div.textContent = alert.message || 'Alert';
-                    alertsContainer.appendChild(div);
-                });
-            })
-            .catch(err => {
-                console.error('Alerts load error:', err);
-                const alertsContainer = document.getElementById('alerts');
-                if (alertsContainer) alertsContainer.innerHTML = '<div class="empty-state danger"><i class="bi bi-exclamation-triangle"></i><span>Error loading alerts</span></div>';
-            })
-            .finally(() => { if (alertsLoading) alertsLoading.style.display = 'none'; });
-    }
-
-    // Load stock ticker
-    function loadStockTicker() {
-        fetch('api/phar_inventory.php')
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then(res => {
-                const tickerEl = document.getElementById('stock-ticker-content');
-                if (!tickerEl) return;
-                if (!res.success) throw new Error('API error');
-
-                const parts = [];
-
-                // Low stock segment
-                if (Array.isArray(res.lowStockItems) && res.lowStockItems.length > 0) {
-                    const names = res.lowStockItems.map(item => `${item.name} (${item.quantity} units)`);
-                    parts.push(`⚠ Low stock: ${names.join(', ')}`);
-                } else {
-                    parts.push('✓ All medicines adequately stocked');
-                }
-
-                // Expiring segment
-                if (Array.isArray(res.expiringItems) && res.expiringItems.length > 0) {
-                    const expNames = res.expiringItems
-                        .filter(i => i.status === 'expired' || i.status === 'critical')
-                        .map(i => i.name);
-                    if (expNames.length > 0) {
-                        parts.push(`🗓 Expiring soon: ${expNames.join(', ')}`);
-                    }
-                }
-
-                tickerEl.textContent = parts.join('   •   ');
-            })
-            .catch(err => {
-                console.error('Stock ticker error:', err);
-                const tickerEl = document.getElementById('stock-ticker-content');
-                if (tickerEl) tickerEl.textContent = 'Error loading stock data';
-            });
-    }
-
-    // Update date and time dynamically
+    // 1. Dynamic Clock
     function updateDateTime() {
-        const now = new Date();
-        const dateTimeEl = document.getElementById('current-date-time');
         if (!dateTimeEl) return;
+        const now = new Date();
         dateTimeEl.textContent = now.toLocaleString('en-US', {
-            month: 'long',
+            weekday: 'short',
+            month: 'short',
             day: 'numeric',
             year: 'numeric',
             hour: 'numeric',
@@ -506,84 +72,520 @@ document.addEventListener('DOMContentLoaded', () => {
             hour12: true
         });
     }
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
 
-    // Load top 10 medicines by demand
-    function loadTopMedicines() {
-        const topMedicinesEl = document.getElementById('top-medicines');
-        const loadingEl = document.getElementById('top-medicines-loading');
-        if (!topMedicinesEl) return;
-        if (loadingEl) loadingEl.style.display = 'block';
+    // Helper: relative time calculation
+    function getRelativeTime(timestamp) {
+        const now = new Date();
+        const date = new Date(timestamp);
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
 
-        fetch('api/phar_analytics.php?action=top_medicines&limit=10')
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays === 1) return 'yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // Helper: format currency
+    function formatCurrency(val) {
+        if (val >= 1000000) {
+            return '₱' + (val / 1000000).toFixed(1) + 'M';
+        } else if (val >= 1000) {
+            return '₱' + (val / 1000).toFixed(0) + 'K';
+        }
+        return '₱' + Math.round(val).toLocaleString();
+    }
+
+    function money(value) {
+        return 'PHP ' + Number(value || 0).toFixed(2);
+    }
+
+    function renderAutoOrderSummary(request) {
+        if (!autoOrderSummaryBody || !request) return;
+        const orderableItems = (request.items || []).filter(item => item.can_order !== false);
+        autoOrderSummaryBody.innerHTML = (request.items || []).map(item => `
+            <tr>
+                <td><strong>${item.medicine_name || 'Unknown'}</strong></td>
+                <td>${Number(item.current_quantity || 0).toLocaleString()} units</td>
+                <td style="white-space: normal; min-width: 200px;">
+                    ${item.supplier_name || 'No supplier'}
+                    ${Number(item.is_preferred || 0) === 1 ? '<span class="badge bg-success ms-2">Preferred</span>' : ''}
+                </td>
+                <td style="white-space: normal; min-width: 160px;">
+                    ${item.can_order === false
+                        ? `<span class="badge bg-warning text-dark" style="white-space: normal;">${item.reason || 'Needs attention'}</span>`
+                        : '<span class="badge bg-success">Ready to order</span>'}
+                </td>
+                <td>${Number(item.quantity || 0).toLocaleString()}</td>
+                <td>${money(item.unit_price)}</td>
+                <td>${money(item.subtotal)}</td>
+            </tr>
+        `).join('');
+        if (autoOrderSummaryTotal) autoOrderSummaryTotal.textContent = money(request.total_amount);
+        if (confirmAutoOrderBtn) {
+            confirmAutoOrderBtn.disabled = orderableItems.length === 0;
+            confirmAutoOrderBtn.innerHTML = orderableItems.length
+                ? '<i class="bi bi-check2-circle me-1"></i>Create Orders'
+                : '<i class="bi bi-exclamation-triangle me-1"></i>No Orderable Items';
+        }
+    }
+
+    function handleAutoOrderAction(action) {
+        if (!pendingAutoOrderRequest?.id) return;
+        const body = new FormData();
+        body.append('action', action);
+        body.append('request_id', pendingAutoOrderRequest.id);
+
+        if (action === 'accept' && confirmAutoOrderBtn) {
+            confirmAutoOrderBtn.disabled = true;
+            confirmAutoOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+        }
+
+        fetch('api/phar_auto_order_requests.php', { method: 'POST', body })
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success) throw new Error(res.message || 'Auto-order request failed.');
+                pendingAutoOrderRequest = null;
+                autoOrderBanner?.classList.remove('show');
+                autoOrderSummaryModal?.hide();
+                fetchAlerts();
+                fetchDashboardMetrics();
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+            .finally(() => {
+                if (confirmAutoOrderBtn) {
+                    confirmAutoOrderBtn.disabled = false;
+                    confirmAutoOrderBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Create Orders';
+                }
+            });
+    }
+
+    function renderAutoOrderAlert(request) {
+        if (!alertsListEl || !request || !Array.isArray(request.items) || request.items.length === 0) return false;
+        pendingAutoOrderRequest = request;
+        const row = document.createElement('div');
+        const orderableCount = request.items.filter(item => item.can_order !== false).length;
+        if (autoOrderBanner && autoOrderBannerSub) {
+            autoOrderBannerSub.textContent = `${request.items.length} low-stock item(s), ${orderableCount} ready to order, ${money(request.total_amount)} estimated total.`;
+            autoOrderBanner.classList.add('show');
+        }
+        row.className = 'alert-row auto-order';
+        row.innerHTML = `
+            <i class="bi bi-cart-plus-fill text-primary mt-1"></i>
+            <div>
+                <div class="a-title">You need to order now</div>
+                <div class="a-sub">${request.items.length} low-stock item(s), ${orderableCount} ready to order, ${money(request.total_amount)} estimated total</div>
+            </div>
+            <div class="auto-order-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="auto-order-accept-btn">
+                    <i class="bi bi-check2-circle me-1"></i>Accept
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" id="auto-order-reject-btn">
+                    <i class="bi bi-x-circle me-1"></i>Reject
+                </button>
+            </div>
+        `;
+        alertsListEl.prepend(row);
+        document.getElementById('auto-order-accept-btn')?.addEventListener('click', () => {
+            pendingAutoOrderRequest = request;
+            renderAutoOrderSummary(request);
+            autoOrderSummaryModal?.show();
+        });
+        document.getElementById('auto-order-reject-btn')?.addEventListener('click', () => {
+            pendingAutoOrderRequest = request;
+            handleAutoOrderAction('reject');
+        });
+        return true;
+    }
+
+    // 2. Fetch main dashboard metrics (KPIs, suppliers, activity)
+    function fetchDashboardMetrics() {
+        fetch('api/phar_dashboard_metrics.php')
             .then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
             .then(res => {
-                if (loadingEl) loadingEl.style.display = 'none';
-                if (!res.success || !Array.isArray(res.data) || res.data.length === 0) {
-                    topMedicinesEl.innerHTML = '<div class="empty-state"><i class="bi bi-box"></i>No medicines found</div>';
-                    return;
+                if (!res.success) throw new Error('API reported failure');
+
+                // A. KPIs
+                const kpis = res.kpis;
+                
+                // Current month sales
+                const salesValEl = document.getElementById('kpi-sales-value');
+                const salesDeltaEl = document.getElementById('kpi-sales-delta');
+                if (salesValEl) salesValEl.textContent = formatCurrency(kpis.month_sales || 0);
+                if (salesDeltaEl) {
+                    const delta = kpis.sales_change_percent;
+                    if (delta > 0) {
+                        salesDeltaEl.className = 'delta up';
+                        salesDeltaEl.innerHTML = `<i class="bi bi-arrow-up-short"></i>${delta.toFixed(0)}% vs next month forecast`;
+                    } else if (delta < 0) {
+                        salesDeltaEl.className = 'delta down';
+                        salesDeltaEl.innerHTML = `<i class="bi bi-arrow-down-short"></i>${Math.abs(delta).toFixed(0)}% vs next month forecast`;
+                    } else {
+                        salesDeltaEl.className = 'delta flat';
+                        salesDeltaEl.innerHTML = `<i class="bi bi-dash"></i>tracks next month forecast`;
+                    }
                 }
-                let html = '';
-                res.data.forEach((med, i) => {
-                    const demand = Number(med.total_demand) || 0;
-                    html += `<div class="top-med-item"><span class="rank">${i + 1}</span><span class="name">${med.medicine_name || 'Unknown'}</span><span class="badge bg-info">${demand} units</span></div>`;
-                });
-                topMedicinesEl.innerHTML = html;
+
+                // Inventory Value
+                const invValEl = document.getElementById('kpi-inventory-value');
+                if (invValEl) invValEl.textContent = formatCurrency(kpis.inventory_value);
+
+                // Low Stock
+                const lowValEl = document.getElementById('kpi-low-stock-value');
+                const lowDeltaEl = document.getElementById('kpi-low-stock-delta');
+                const lowCard = document.getElementById('kpi-low-stock');
+                if (lowValEl) lowValEl.textContent = kpis.low_stock_count;
+                if (lowDeltaEl) lowDeltaEl.textContent = `threshold: ${kpis.low_stock_threshold} units`;
+                if (lowCard) {
+                    if (kpis.low_stock_count > 0) {
+                        lowCard.classList.add('danger');
+                    } else {
+                        lowCard.classList.remove('danger');
+                    }
+                }
+
+                // Expiring in 30 days
+                const expValEl = document.getElementById('kpi-expiring-value');
+                const expDeltaEl = document.getElementById('kpi-expiring-delta');
+                const expLabelEl = document.getElementById('kpi-expiring-label');
+                const expCard = document.getElementById('kpi-expiring');
+                if (expValEl) expValEl.textContent = kpis.expiring_count_30;
+                if (expLabelEl) expLabelEl.textContent = `Expiring in ${kpis.expiry_alert_days} days`;
+                if (expDeltaEl) expDeltaEl.textContent = `across ${kpis.expiring_suppliers_count} suppliers`;
+                if (expCard) {
+                    if (kpis.expiring_count_30 > 0) {
+                        expCard.classList.add('warn');
+                    } else {
+                        expCard.classList.remove('warn');
+                    }
+                }
+
+                // Pending Orders
+                const pendValEl = document.getElementById('kpi-pending-value');
+                const pendDeltaEl = document.getElementById('kpi-pending-delta');
+                if (pendValEl) pendValEl.textContent = kpis.pending_orders_count;
+                if (pendDeltaEl) {
+                    if (kpis.pending_orders_awaiting_approval > 0) {
+                        pendDeltaEl.textContent = `${kpis.pending_orders_awaiting_approval} awaiting approval`;
+                    } else {
+                        pendDeltaEl.textContent = 'steady';
+                    }
+                }
+
+                // B. Supplier Status Chips
+                if (supplierListEl) {
+                    supplierListEl.innerHTML = '';
+                    const suppliers = res.supplier_status || [];
+                    
+                    const activeCountEl = document.getElementById('active-suppliers-count');
+                    if (activeCountEl) activeCountEl.textContent = `${suppliers.length} active`;
+
+                    if (suppliers.length > 0) {
+                        suppliers.forEach(sup => {
+                            const chip = document.createElement('div');
+                            chip.className = 'supplier-chip';
+                            chip.innerHTML = `
+                                <span>${sup.company}</span>
+                                <span class="status ${sup.class}">${sup.status}</span>
+                            `;
+                            supplierListEl.appendChild(chip);
+                        });
+                    } else {
+                        supplierListEl.innerHTML = '<div class="empty-state">No suppliers registered</div>';
+                    }
+                }
+
+                // C. Recent Activity list
+                if (activityListEl) {
+                    activityListEl.innerHTML = '';
+                    const activities = res.recent_activity || [];
+                    if (activities.length > 0) {
+                        activities.forEach(act => {
+                            const actVerb = act.action === 'add' ? 'restocked' : (act.action === 'remove' ? 'sold' : 'modified');
+                            const sign = act.action === 'add' ? '+' : (act.action === 'remove' ? '-' : '');
+                            const qtyText = act.quantity ? ` (${sign}${act.quantity} units)` : '';
+                            const user = act.user_name || 'System';
+                            const timeText = getRelativeTime(act.timestamp);
+
+                            const row = document.createElement('div');
+                            row.className = 'activity-row';
+                            row.innerHTML = `
+                                <div class="activity-dot"></div>
+                                <div>
+                                    <div><span class="a-user">${user}</span> ${actVerb} ${act.medicine_name}${qtyText}</div>
+                                    <div class="a-time">${timeText}</div>
+                                </div>
+                            `;
+                            activityListEl.appendChild(row);
+                        });
+                    } else {
+                        activityListEl.innerHTML = '<div class="empty-state">No recent activities</div>';
+                    }
+                }
             })
             .catch(err => {
-                console.error('Top medicines error:', err);
-                if (loadingEl) loadingEl.style.display = 'none';
-                topMedicinesEl.innerHTML = '<div class="empty-state danger"><i class="bi bi-exclamation-triangle"></i>Error loading</div>';
+                console.error('Failed to load dashboard metrics:', err);
             });
     }
 
-    // Manual refresh
-    if (refreshButton) {
-        refreshButton.addEventListener('click', () => {
-            loadInventory();
-            loadSuppliers();
-            loadAlerts();
-            loadTopMedicines();
-            loadDashboardQuickInsights();
-            loadDashboardStockForecastChart();
-            loadStockTicker();
-            showToast('Data refreshed successfully');
-        });
+    // 3. Fetch top medicines
+    function fetchTopMedicines() {
+        if (!topMedsEl) return;
+        const range = currentFourteenDayRange();
+        fetch(`api/phar_analytics.php?action=top_medicines&limit=10&start=${range.start}&end=${range.end}`)
+            .then(r => r.json())
+            .then(res => {
+                topMedsEl.innerHTML = '';
+                if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+                    res.data.forEach((med, i) => {
+                        const row = document.createElement('div');
+                        row.className = 'med-row';
+                        row.innerHTML = `
+                            <span class="rank">${i + 1}</span>
+                            <span class="name">${med.medicine_name || 'Unknown'}</span>
+                            <span class="qty">${Number(med.total_demand).toLocaleString()} units</span>
+                        `;
+                        topMedsEl.appendChild(row);
+                    });
+                } else {
+                    topMedsEl.innerHTML = '<div class="empty-state"><i class="bi bi-trophy"></i>No sales demand recorded</div>';
+                }
+            })
+            .catch(err => {
+                console.error('Top medicines fetch error:', err);
+                topMedsEl.innerHTML = '<div class="empty-state">Failed to load top medicines</div>';
+            });
     }
 
-    // Navigation
-    window.showDetails = (type) => {
-        const pages = {
-            alerts: 'phar_notifications.php',
-            inventory: 'phar_medicine.php',
-        };
-        if (pages[type]) window.location.href = pages[type];
-    };
+    // 4. Fetch alerts
+    function fetchAlerts() {
+        if (!alertsListEl) return;
+        fetch('api/phar_notifications.php?read=0')
+            .then(r => r.json())
+            .then(res => {
+                alertsListEl.innerHTML = '';
+                const alerts = res.data || [];
+                
+                let autoOrderVisible = false;
 
-    // Ctrl+R refresh
-    document.addEventListener('keydown', e => {
-        if (e.ctrlKey && e.key === 'r') {
-            e.preventDefault();
-            refreshButton?.click();
-        }
+                if (alerts.length > 0) {
+                    alerts.forEach(alert => {
+                        // Classify severity
+                        const isCritical = alert.type === 'danger' || 
+                                           alert.message.toLowerCase().includes('out of stock') || 
+                                           alert.message.toLowerCase().includes('expires soon') ||
+                                           alert.message.toLowerCase().includes('nearing expiry within 30');
+                        
+                        const alertClass = isCritical ? 'critical' : 'warning';
+                        const icon = isCritical ? 'bi-x-octagon-fill text-danger' : 'bi-exclamation-triangle-fill text-warning';
+
+                        // Parse Title and Subtext
+                        let title = alert.message;
+                        let subText = 'System alert';
+                        
+                        if (alert.message.includes('alert:')) {
+                            const p = alert.message.split('alert:');
+                            title = p[0].trim() + ' Alert';
+                            subText = p[1].trim();
+                        } else if (alert.message.includes(':')) {
+                            const p = alert.message.split(':');
+                            title = p[0].trim();
+                            subText = p[1].trim();
+                        } else if (alert.message.includes('—')) {
+                            const p = alert.message.split('—');
+                            title = p[0].trim();
+                            subText = p[1].trim();
+                        }
+
+                        const row = document.createElement('div');
+                        row.className = `alert-row ${alertClass}`;
+                        row.innerHTML = `
+                            <i class="bi ${icon} mt-1"></i>
+                            <div>
+                                <div class="a-title">${title}</div>
+                                <div class="a-sub">${subText} · ${getRelativeTime(alert.created_at)}</div>
+                            </div>
+                        `;
+                        alertsListEl.appendChild(row);
+                    });
+                } else {
+                    alertsListEl.innerHTML = '<div class="empty-state"><i class="bi bi-bell-slash"></i>No alerts at this time</div>';
+                }
+
+                fetch('api/phar_auto_order_requests.php')
+                    .then(r => r.json())
+                    .then(autoRes => {
+                        if (autoRes.success && autoRes.data) {
+                            if (!alerts.length) alertsListEl.innerHTML = '';
+                            autoOrderVisible = renderAutoOrderAlert(autoRes.data);
+                        } else {
+                            pendingAutoOrderRequest = null;
+                            autoOrderBanner?.classList.remove('show');
+                        }
+                        if (alertsCountEl) alertsCountEl.textContent = alerts.length + (autoOrderVisible ? 1 : 0);
+                    })
+                    .catch(() => {
+                        if (alertsCountEl) alertsCountEl.textContent = alerts.length;
+                    });
+            })
+            .catch(err => {
+                console.error('Alerts load error:', err);
+                alertsListEl.innerHTML = '<div class="empty-state">Failed to load alerts</div>';
+            });
+    }
+
+    confirmAutoOrderBtn?.addEventListener('click', () => handleAutoOrderAction('accept'));
+    autoOrderBannerAccept?.addEventListener('click', () => {
+        if (!pendingAutoOrderRequest) return;
+        renderAutoOrderSummary(pendingAutoOrderRequest);
+        autoOrderSummaryModal?.show();
     });
+    autoOrderBannerReject?.addEventListener('click', () => handleAutoOrderAction('reject'));
 
-    // Initial data load
-    loadInventory();
-    loadSuppliers();
-    loadAlerts();
-    loadTopMedicines();
-    loadDashboardQuickInsights();
-    loadDashboardDemandChart();
-    loadDashboardTrendsChart();
-    loadDashboardStockForecastChart();
-    loadStockTicker();
-    updateDateTime();
+    // 5. Render trend chart (latest 14 days of sales vs forecast)
+    function loadTrendChart() {
+        const canvas = document.getElementById('trendChart');
+        if (!canvas) return;
+
+        const endDate = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 13);
+        const formatDate = date => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        const range = { start: formatDate(startDate), end: formatDate(endDate) };
+        fetch(`api/phar_analytics.php?action=daily_trends&start=${range.start}&end=${range.end}`)
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success || !Array.isArray(res.data) || res.data.length === 0) {
+                    renderEmptyChart('trendChart', 'No trend data available');
+                    return;
+                }
+
+                // Format labels and extract data
+                const labels = [];
+                const salesData = [];
+                const forecastData = [];
+
+                res.data.forEach(item => {
+                    // format date to "MMM D"
+                    const dateObj = new Date(item.date);
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    labels.push(formattedDate);
+                    
+                    const sales = Number(item.total_demand) || 0;
+                    salesData.push(sales);
+                });
+
+                // Generate forecast values dynamically (simple projection moving average)
+                let runningSum = 0;
+                salesData.forEach((val, idx) => {
+                    runningSum += val;
+                    const avg = runningSum / (idx + 1);
+                    forecastData.push(Math.round(avg * 1.05 + 1));
+                });
+
+                const isDark = document.body.classList.contains('dark-mode') || document.documentElement.classList.contains('dark-mode');
+                const primaryColor = '#1b5e3f';
+                const secondaryColor = '#2ecc71';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+                const textColor = isDark ? '#94a3b8' : '#64748b';
+
+                if (trendChartInstance) {
+                    trendChartInstance.destroy();
+                }
+
+                trendChartInstance = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Sales (units)',
+                                data: salesData,
+                                borderColor: primaryColor,
+                                backgroundColor: 'rgba(27, 94, 63, 0.08)',
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 2
+                            },
+                            {
+                                label: 'Demand Forecast',
+                                data: forecastData,
+                                borderColor: secondaryColor,
+                                borderDash: [5, 4],
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 10,
+                                    font: { size: 11, family: 'Inter' },
+                                    color: textColor
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: gridColor },
+                                ticks: { font: { size: 10 }, color: textColor }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { size: 10 }, color: textColor }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                console.error('Trend chart fetch error:', err);
+                renderEmptyChart('trendChart', 'Failed to load graph');
+            });
+    }
+
+    function renderEmptyChart(id, message) {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+    }
+
+    // Initial Load
+    fetchDashboardMetrics();
+    fetchTopMedicines();
+    fetchAlerts();
+    loadTrendChart();
+
+    // Listen to dark mode changes if any
+    const observer = new MutationObserver(() => {
+        loadTrendChart();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 });
-
-// Utility function for toasts
-function showToast(message) {
-    console.log('Toast:', message);
-}

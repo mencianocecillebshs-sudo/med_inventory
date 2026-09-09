@@ -28,7 +28,7 @@ requireSupplierPage($conn);
         .main-content { 
             margin-left: 250px; 
             padding: 2rem;
-            height: 200%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             overflow: hidden; /* Prevent main-content scrolling */
@@ -318,20 +318,11 @@ requireSupplierPage($conn);
             background: #f0fdf4;
             color: #0f3f28;
         }
+        .download-dropdown .dropdown-item i { font-size: 1.05rem; }
+        .download-dropdown .dropdown-item.pdf i { color: #dc2626; }
+        .download-dropdown .dropdown-item.excel i { color: #10b981; }
+        .download-dropdown .dropdown-item.csv i { color: #06b6d4; }
         
-        .filter-indicator {
-            background: #eff6ff;
-            color: #1e3a8a;
-            padding: 0.6rem 0.9rem;
-            border-radius: 9px;
-            font-size: 0.82rem;
-            margin-bottom: 0.75rem;
-            display: flex; 
-            align-items: center;
-            border: 1px solid #93c5fd;
-            font-weight: 600;
-        }
-
         .report-pagination-bar {
             display: flex;
             align-items: center;
@@ -451,60 +442,231 @@ requireSupplierPage($conn);
             .table { font-size: 0.85rem; } 
             .page-header, .filter-section, .report-actions { display: none; } 
         }
+
+        #print-area { display: none; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #print-area h4 {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            #print-area table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+            }
+            #print-area th,
+            #print-area td {
+                border: 1px solid #ccc;
+                padding: 6px 8px;
+                text-align: left;
+            }
+            #print-area th {
+                background: #1b5e3f !important;
+                color: #fff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* Keep the supplier report surface aligned with the admin report page. */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            height: calc(100vh - 108px);
+            overflow: hidden;
+        }
+        .page-header {
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .page-header p { display: none; }
+        .card.admin-table-card {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+        }
+        .card.admin-table-card .card-body {
+            padding: 1.5rem;
+        }
+        .filter-section {
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .report-toolbar {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            height: 100%;
+        }
+        .report-toolbar .report-actions,
+        .report-toolbar .download-dropdown,
+        .report-toolbar .download-dropdown .dropdown-toggle {
+            flex: 0 0 auto;
+        }
+        .report-toolbar .download-dropdown .dropdown-toggle { width: auto; }
+        #generate-report-btn { display: none; }
+        #print-report-btn,
+        #print-preview-btn {
+            border: 1px solid #cddfd7;
+            color: #1b5e3f;
+            background: #eef5f1;
+            border-radius: 10px;
+        }
+        #print-report-btn:hover,
+        #print-report-btn:focus,
+        #print-preview-btn:hover,
+        #print-preview-btn:focus {
+            border-color: #1b5e3f;
+            color: #ffffff;
+            background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%);
+        }
+        .download-dropdown .dropdown-toggle {
+            border-radius: 10px;
+        }
+        .table-container {
+            flex: 1;
+            height: auto;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        .table {
+            font-size: 1rem;
+        }
+        .table th {
+            padding: 1rem;
+        }
+        .table td {
+            padding: 1rem;
+        }
+        .report-pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem 0 0;
+            min-height: 2.75rem;
+        }
+        .report-pagination-info {
+            color: #64748b;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .medicine-search-wrap .search-input-group {
+            position: relative;
+        }
+        .medicine-search-wrap .search-input-group .form-control {
+            padding-left: 2.25rem;
+            padding-right: 2.25rem;
+        }
+        .medicine-search-wrap .search-clear-btn {
+            position: absolute;
+            right: 0.4rem;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            padding: 0.25rem 0.4rem;
+            line-height: 1;
+            display: none;
+            cursor: pointer;
+        }
+        .medicine-search-wrap .search-clear-btn:hover {
+            color: #64748b;
+        }
+        .medicine-search-wrap .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #1b5e3f 0%, #0f3f28 100%);
+            border-bottom: none;
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                height: auto;
+                min-height: calc(100vh - 100px);
+                overflow: visible;
+            }
+            .report-toolbar { justify-content: stretch; }
+            .report-toolbar .report-actions,
+            .report-toolbar .download-dropdown,
+            .report-toolbar .download-dropdown .dropdown-toggle { flex: 1 1 0; }
+            .report-toolbar .download-dropdown .dropdown-toggle { width: 100%; }
+        }
     </style>
 </head>
 <body>
     <?php include 'includes/nav.php'; ?>
 
-    <div class="main-content">
+    <div class="main-content admin-table-page">
         <div class="page-header">
-            <h2><i class="bi bi-file-bar-graph-fill me-2"></i>Reports</h2>
-            <p class="mb-0 opacity-75">Generate and export inventory, sales transactions, and more.</p>
+            <h2><i class="bi bi-file-text me-2"></i> Reports</h2>
         </div>
 
-        <div class="card-body">
+        <div class="card admin-table-card">
+            <div class="card-body">
                 <div class="filter-section">
-                    <div class="row g-1 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label">
-                                <i class="bi bi-file-earmark-text"></i> Inventory Report
-                            </label>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="bi bi-file-earmark-text me-1"></i> Report Type</label>
                             <select class="form-select" id="report-type">
                                 <option value="inventory">Inventory Report</option>
                                 <option value="transactions">Sales Transactions Report</option>
                             </select>
                         </div>
-                        <div class="col-md-5 medicine-search-wrap">
-                            <label class="form-label">
-                                <i class="bi bi-capsule"></i> Search Medicine
-                            </label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="medicine-search" placeholder="Enter medicine name..." autocomplete="off" aria-label="Search medicine">
-                                <button class="btn btn-primary" id="search-report-btn" type="button">
-                                    <i class="bi bi-search"></i> Search
+                        <div class="col-md-3 medicine-search-wrap">
+                            <label class="form-label"><i class="bi bi-funnel me-1"></i> Filter by Item</label>
+                            <div class="search-input-group">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" class="form-control" id="medicine-search" placeholder="Search item..." autocomplete="off" aria-label="Search medicine">
+                                <button class="search-clear-btn" id="clear-report-search" type="button" title="Clear search" aria-label="Clear search">
+                                    <i class="bi bi-x-circle-fill"></i>
                                 </button>
                             </div>
                             <div id="medicine-search-suggestions" class="medicine-search-suggestions" role="listbox" aria-label="Medicine suggestions"></div>
                             <input type="hidden" id="medicine-filter" value="">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6 d-flex justify-content-end gap-2">
                             <div class="report-toolbar">
-                                <button class="btn" id="generate-report-btn" type="button" onclick="loadReport()">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                    <span>Refresh</span>
+                                <button class="btn btn-outline-secondary action-btn" id="print-report-btn" type="button">
+                                    <i class="bi bi-printer me-1"></i> Print
                                 </button>
                                 <div class="report-actions no-print">
                                     <div class="btn-group download-dropdown">
-                                        <button class="btn btn-outline-primary dropdown-toggle action-btn" type="button" id="report-actions-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn action-btn dropdown-toggle" type="button" id="report-actions-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-download me-1"></i> Download
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="report-actions-toggle">
-                                            <li><button class="dropdown-item" type="button" onclick="previewReport()"><i class="bi bi-eye"></i> Preview</button></li>
-                                            <li><button class="dropdown-item" type="button" onclick="printReport()"><i class="bi bi-printer"></i> Print</button></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><button class="dropdown-item" type="button" onclick="generatePDF()"><i class="bi bi-file-earmark-pdf"></i> PDF (.pdf)</button></li>
-                                            <li><button class="dropdown-item" type="button" onclick="generateExcel()"><i class="bi bi-file-earmark-excel"></i> Excel (.xlsx)</button></li>
-                                            <li><button class="dropdown-item" type="button" onclick="generateCSV()"><i class="bi bi-filetype-csv"></i> CSV (.csv)</button></li>
+                                            <li><button class="dropdown-item pdf" type="button" onclick="generatePDF()"><i class="bi bi-file-earmark-pdf"></i> PDF (.pdf)</button></li>
+                                            <li><button class="dropdown-item excel" type="button" onclick="generateExcel()"><i class="bi bi-file-earmark-excel"></i> Excel (.xlsx)</button></li>
+                                            <li><button class="dropdown-item csv" type="button" onclick="generateCSV()"><i class="bi bi-filetype-csv"></i> CSV (.csv)</button></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -527,14 +689,22 @@ requireSupplierPage($conn);
                     </nav>
                 </div>
             </div>
-            
+            </div>
+    </div>
+
+    <div id="print-area">
+        <h4 id="print-area-title"></h4>
+        <table>
+            <thead id="print-area-header"></thead>
+            <tbody id="print-area-body"></tbody>
+        </table>
     </div>
 
     <!-- Preview Modal -->
     <div class="modal fade" id="reportPreviewModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header text-white bg-primary">
+                <div class="modal-header text-white">
                     <h5 class="modal-title" id="preview-title">Report Preview</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -547,6 +717,9 @@ requireSupplierPage($conn);
                     </div>
                 </div>
                 <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-outline-secondary action-btn" id="print-preview-btn">
+                        <i class="bi bi-printer me-1"></i> Print this
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>

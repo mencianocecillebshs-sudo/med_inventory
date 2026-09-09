@@ -32,52 +32,66 @@ if (!$conn) {
 }
 
 try {
-    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 7;
-    $limit = max(1, min(30, $limit)); // Cap between 1 and 30
-    
-    // Get this supplier's actual sales data for the chart (last 30 days).
+    $startDate = date('Y-m-01');
+    $endDate = date('Y-m-d');
+
+    // Get this supplier's actual sales totals for each day this month.
     $stmt = $conn->prepare("
         SELECT 
-            DATE(created_at) as sale_date,
-            SUM(quantity) as quantity
+        DATE(created_at) AS sale_date,
+        COALESCE(SUM(line_total), 0) AS sales_total
         FROM supplier_sales
         WHERE supplier_id = ?
-          AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      AND created_at >= ?
+      AND created_at < DATE_ADD(?, INTERVAL 1 DAY)
         GROUP BY DATE(created_at)
-        ORDER BY sale_date DESC
-        LIMIT ?
+    ORDER BY sale_date ASC
     ");
     
     if (!$stmt) {
         throw new Exception("Query preparation failed: " . $conn->error);
     }
     
-    $stmt->bind_param('ii', $supplierId, $limit);
+    $stmt->bind_param('iss', $supplierId, $startDate, $endDate);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    $data = [];
+
+    $salesByDate = [];
     while ($row = $result->fetch_assoc()) {
-        $data[] = [
-            'prescription_date' => $row['sale_date'],
-            'date' => $row['sale_date'],
-            'quantity' => intval($row['quantity'])
-        ];
+        $salesByDate[$row['sale_date']] = (float)$row['sales_total'];
     }
-    
     $stmt->close();
-    
-    // Reverse to show chronologically (oldest to newest)
-    $data = array_reverse($data);
-    
-    // Return data
-    echo json_encode($data);
+
+    $labels = [];
+    $values = [];
+    $currentDate = new DateTime($startDate);
+    $lastDate = new DateTime($endDate);
+    while ($currentDate <= $lastDate) {
+        $date = $currentDate->format('Y-m-d');
+        $labels[] = $currentDate->format('M j');
+        $values[] = $salesByDate[$date] ?? 0;
+        $currentDate->modify('+1 day');
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'labels' => $labels,
+            'datasets' => [[
+                'label' => 'Sales',
+                'data' => $values
+            ]]
+        ],
+        'period' => [
+            'start' => $startDate,
+            'end' => $endDate
+        ]
+    ]);
     
 } catch (Exception $e) {
     error_log("Chart data API error: " . $e->getMessage());
     
     // Return an empty live result on error; never fabricate analytics values.
-    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 7;
     echo json_encode([]);
 }
 

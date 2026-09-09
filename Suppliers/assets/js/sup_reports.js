@@ -5,12 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let reportData = [];
     let currentPage = 1;
     let suppressLoadToast = false;
+    let searchDebounceTimer = null;
     const fmt = (v) => window.SupUtils ? window.SupUtils.formatCurrency(v) : '₱' + parseFloat(v || 0).toFixed(2);
     const fmtDate = (v) => window.SupUtils ? window.SupUtils.formatDate(v) : (v ? new Date(v).toLocaleDateString() : 'N/A');
     const fmtDateTime = (v) => window.SupUtils ? window.SupUtils.formatDateTime(v) : (v ? new Date(v).toLocaleString() : 'N/A');
+    const printReportBtn = document.getElementById('print-report-btn');
+    const printPreviewBtn = document.getElementById('print-preview-btn');
     const medicineSearchInput = document.getElementById('medicine-search');
     const medicineFilterInput = document.getElementById('medicine-filter');
-    const searchReportBtn = document.getElementById('search-report-btn');
     const medicineSuggestionsBox = document.getElementById('medicine-search-suggestions');
 
     function escapeHtml(text) {
@@ -31,38 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (medicineSearchInput) {
             medicineSearchInput.value = label || '';
-        }
-    }
-
-    function updateFilterIndicator() {
-        const indicator = document.getElementById('filter-indicator');
-        const text = document.getElementById('filter-text');
-        const searchStatusText = document.getElementById('search-status-text');
-        const type = document.getElementById('report-type') ? document.getElementById('report-type').value : 'inventory';
-        const medName = medicineSearchInput && medicineSearchInput.value.trim()
-            ? medicineSearchInput.value.trim()
-            : 'All Medicines';
-
-        let filterText = type.replace(/\b\w/g, l => l.toUpperCase()).replace(/([A-Z])/g, ' $1').trim();
-        if (currentMedicineId > 0 && medName !== 'All Medicines') {
-            filterText += ` for ${escapeHtml(medName)}`;
-        }
-
-        if (text) {
-            text.textContent = filterText;
-        }
-        if (indicator) {
-            indicator.classList.remove('d-none');
-        }
-
-        if (searchStatusText) {
-            if (medicineSearchInput && medicineSearchInput.value.trim()) {
-                searchStatusText.textContent = `Filtered by: ${medicineSearchInput.value.trim()}`;
-                searchStatusText.classList.add('text-primary');
-            } else {
-                searchStatusText.textContent = 'Showing all medicines';
-                searchStatusText.classList.remove('text-primary');
-            }
         }
     }
 
@@ -162,10 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const clearSearchBtn = document.getElementById('clear-report-search');
 
-    if (searchReportBtn) {
-        searchReportBtn.addEventListener('click', () => doMedicineSearch({ silent: false }));
-    }
-
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', () => {
             if (medicineSearchInput) {
@@ -174,20 +140,30 @@ document.addEventListener('DOMContentLoaded', () => {
             setMedicineFilter(0, '');
             hideMedicineSuggestions();
             currentPage = 1;
+            clearTimeout(searchDebounceTimer);
             suppressLoadToast = true;
             loadReport();
+            medicineSearchInput.focus();
         });
     }
 
     if (medicineSearchInput) {
         medicineSearchInput.addEventListener('input', (event) => {
             const term = event.target.value.trim();
+            if (clearSearchBtn) clearSearchBtn.style.display = term ? 'block' : 'none';
+            currentMedicineId = 0;
+            if (medicineFilterInput) medicineFilterInput.value = '';
             if (!term) {
-                setMedicineFilter(0, '');
                 hideMedicineSuggestions();
-                return;
+            } else {
+                fetchMedicineSuggestions(term);
             }
-            fetchMedicineSuggestions(term);
+            currentPage = 1;
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                suppressLoadToast = true;
+                loadReport();
+            }, 300);
         });
 
         medicineSearchInput.addEventListener('keydown', (event) => {
@@ -231,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.loadReport = function() {
         currentReportType = document.getElementById('report-type').value;
         currentMedicineId = parseInt(document.getElementById('medicine-filter').value) || 0;
-        const reportBody = document.querySelector('.main-content > .card-body');
+        const reportBody = document.querySelector('.admin-table-card > .card-body');
         if (reportBody) {
             reportBody.classList.toggle('medicine-report-view', currentReportType === 'inventory');
         }
@@ -293,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentReportType === 'inventory') {
                     header.innerHTML = `
                         <tr>
-                            <th>Medicine Name</th>
+                            <th>Item Name</th>
                             <th>Barcode</th>
                             <th>Remaining Stock</th>
                             <th>Type</th>
@@ -350,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).join('');
                 }
 
-                updateFilterIndicator();
                 renderReportPagination(paginationData);
                 if (shouldShowLoadToast && paginationData.total_items > 0) {
                     showToast(`Loaded ${reportData.length} record(s) of ${paginationData.total_items}`, 'success');
@@ -409,8 +384,55 @@ document.addEventListener('DOMContentLoaded', () => {
         new bootstrap.Modal(document.getElementById('reportPreviewModal')).show();
     };
 
-    // Print report (current page)
-    window.printReport = function() {
+    function getPrintableTable() {
+        if (!reportData.length) return null;
+
+        if (currentReportType === 'inventory') {
+            return {
+                headers: ['Medicine Name', 'Barcode', 'Remaining Stock', 'Type', 'Description', 'Date Acquired', 'Expiry Date'],
+                rows: reportData.map(row => [
+                    row['Medicine Name'] || row.name || 'N/A',
+                    row.barcode || 'N/A',
+                    row['Remaining Stock'] || row.quantity || 0,
+                    row.type || 'N/A',
+                    row.description || 'N/A',
+                    row['Date Acquired'] ? fmtDate(row['Date Acquired']) : 'N/A',
+                    row['Expiry Date'] ? fmtDate(row['Expiry Date']) : 'N/A'
+                ])
+            };
+        }
+
+        return {
+            headers: ['Order/Invoice', 'Medicine', 'Action', 'Quantity', 'Total Cost', 'Cashier', 'Timestamp'],
+            rows: reportData.map(row => [
+                `${row.order_id ? '#' + row.order_id : 'Walk-in'} / ${row.invoice_number || 'N/A'}`,
+                row.medicine_name || 'N/A',
+                'SALE',
+                row.quantity || 0,
+                fmt(parseFloat(row.total_cost || 0)),
+                row.cashier_name || 'Unknown',
+                fmtDateTime(row.timestamp)
+            ])
+        };
+    }
+
+    // Print only the active report table, matching the admin report page.
+    window.printReport = function(fromPreview = false) {
+        const printTitle = document.getElementById('print-area-title');
+        const printHeader = document.getElementById('print-area-header');
+        const printBody = document.getElementById('print-area-body');
+        const table = getPrintableTable();
+
+        if (!table) {
+            showToast('No report loaded to print.', 'warning');
+            return;
+        }
+
+        printTitle.textContent = `${currentReportType.toUpperCase()} REPORT (Generated ${new Date().toLocaleString()})`;
+        printHeader.innerHTML = `<tr>${table.headers.map(header => `<th>${escapeHtml(header)}</th>`).join('')}</tr>`;
+        printBody.innerHTML = table.rows.map(row =>
+            `<tr>${row.map(cell => `<td>${escapeHtml(String(cell ?? ''))}</td>`).join('')}</tr>`
+        ).join('');
         window.print();
     };
 
@@ -576,5 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     setMedicineFilter(0, '');
+    if (printReportBtn) printReportBtn.addEventListener('click', () => window.printReport(false));
+    if (printPreviewBtn) printPreviewBtn.addEventListener('click', () => window.printReport(true));
     loadReport();
 });

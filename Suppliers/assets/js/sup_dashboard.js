@@ -69,6 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getRelativeTime(timestamp) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return timestamp || 'recently';
+
+        const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+        if (diffMinutes < 1) return 'just now';
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays === 1) return 'yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
     // Load KPI Metrics
     async function loadKPIMetrics() {
         try {
@@ -85,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const kpiLowStock = getElement('kpi-low-stock-value');
                 if (kpiLowStock) kpiLowStock.textContent = lowStockCount;
+
+                const lowStockCard = getElement('kpi-low-stock');
+                if (lowStockCard) lowStockCard.classList.toggle('danger', lowStockCount > 0);
             }
 
             // Load transactions for revenue
@@ -173,14 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
 
         try {
-            const data = await fetchJson('api/sup_check_alerts.php');
+            const data = await fetchJson('api/sup_notifications.php?read=0&limit=5&page=1');
             
             if (data.success === false) {
                 container.innerHTML = '<div class="text-muted text-center py-3">No alerts at this time</div>';
                 return;
             }
 
-            const alerts = Array.isArray(data.data) ? data.data : [];
+            const alerts = Array.isArray(data.notifications) ? data.notifications : [];
 
             if (alerts.length === 0) {
                 container.innerHTML = '<div class="text-muted text-center py-3">No alerts at this time</div>';
@@ -188,26 +206,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const alertsCount = getElement('alerts-count');
-            if (alertsCount) alertsCount.textContent = alerts.length;
+            if (alertsCount) alertsCount.textContent = Number(data.total) || alerts.length;
 
             container.innerHTML = '';
             alerts.slice(0, 5).forEach((alert) => {
                 const item = document.createElement('div');
-                item.className = 'alert-item';
+                const message = String(alert.message || 'System alert');
+                const isCritical = alert.type === 'danger'
+                    || alert.type === 'error'
+                    || /out of stock|critical|expired/i.test(message);
+                item.className = `alert-row ${isCritical ? 'critical' : 'warning'}`;
 
                 const typeEl = document.createElement('div');
-                typeEl.className = 'alert-type';
-                typeEl.textContent = alert.type || 'ALERT';
+                typeEl.className = 'a-title';
+                const separator = message.indexOf(':');
+                typeEl.textContent = separator > 0 ? message.slice(0, separator).trim() : (alert.type || 'ALERT');
 
                 const messageEl = document.createElement('div');
-                messageEl.className = 'alert-message';
-                messageEl.textContent = alert.message || alert.description || 'System alert';
+                messageEl.className = 'a-sub';
+                const separatorText = separator > 0 ? message.slice(separator + 1).trim() : message;
+                messageEl.textContent = `${separatorText} - ${getRelativeTime(alert.created_at)}`;
 
-                const timeEl = document.createElement('div');
-                timeEl.className = 'alert-time';
-                timeEl.textContent = alert.timestamp || new Date().toLocaleString();
-
-                item.append(typeEl, messageEl, timeEl);
+                const icon = document.createElement('i');
+                icon.className = `bi ${isCritical ? 'bi-x-octagon-fill text-danger' : 'bi-exclamation-triangle-fill text-warning'} mt-1`;
+                const content = document.createElement('div');
+                content.append(typeEl, messageEl);
+                item.append(icon, content);
                 container.appendChild(item);
             });
         } catch (error) {

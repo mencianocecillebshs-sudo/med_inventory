@@ -18,25 +18,27 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    // 1. Today's sales
-    $todaySales = 0;
-    $todaySalesResult = $conn->query("SELECT SUM(total_amount) FROM sales_invoices WHERE order_id IS NULL AND DATE(created_at) = CURDATE()");
-    if ($todaySalesResult) {
-        $todaySales = (float)($todaySalesResult->fetch_row()[0] ?? 0);
+    // 1. Current month sales with next-month projection comparison
+    $monthSales = 0;
+    $monthSalesResult = $conn->query("
+        SELECT SUM(total_amount)
+        FROM sales_invoices
+        WHERE order_id IS NULL
+          AND created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND created_at < DATE_ADD(LAST_DAY(CURDATE()), INTERVAL 1 DAY)
+    ");
+    if ($monthSalesResult) {
+        $monthSales = (float)($monthSalesResult->fetch_row()[0] ?? 0);
     }
 
-    // 2. Yesterday's sales
-    $yesterdaySales = 0;
-    $yesterdaySalesResult = $conn->query("SELECT SUM(total_amount) FROM sales_invoices WHERE order_id IS NULL AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
-    if ($yesterdaySalesResult) {
-        $yesterdaySales = (float)($yesterdaySalesResult->fetch_row()[0] ?? 0);
-    }
+    $dayOfMonth = max(1, (int)date('j'));
+    $nextMonthDays = (int)date('t', strtotime('first day of next month'));
+    $nextMonthProjectedSales = ($monthSales / $dayOfMonth) * $nextMonthDays;
 
-    // Sales change percent
     $salesChangePercent = 0;
-    if ($yesterdaySales > 0) {
-        $salesChangePercent = (($todaySales - $yesterdaySales) / $yesterdaySales) * 100;
-    } elseif ($todaySales > 0) {
+    if ($nextMonthProjectedSales > 0) {
+        $salesChangePercent = (($monthSales - $nextMonthProjectedSales) / $nextMonthProjectedSales) * 100;
+    } elseif ($monthSales > 0) {
         $salesChangePercent = 100;
     }
 
@@ -47,30 +49,24 @@ try {
         $inventoryCostValue = (float)($invResult->fetch_row()[0] ?? 0);
     }
 
-    // 4. Low stock count
-    $userId = $_SESSION['user_id'];
-    $thresholdStmt = $conn->prepare(
-        "SELECT value FROM settings WHERE setting_key = 'low_stock_threshold' AND user_id = ? LIMIT 1"
-    );
-    $threshold = 10;
-    if ($thresholdStmt) {
-        $thresholdStmt->bind_param('i', $userId);
-        $thresholdStmt->execute();
-        $res = $thresholdStmt->get_result()->fetch_assoc();
-        if ($res && is_numeric($res['value']) && (int)$res['value'] > 0) {
-            $threshold = (int)$res['value'];
-        }
-        $thresholdStmt->close();
+    // 4. Low stock count uses the system-wide Settings threshold.
+    $threshold = getLowStockThreshold($conn);
+    $lowStmt = $conn->prepare("SELECT COUNT(*) FROM medicines WHERE quantity <= ?");
+    $lowStockCount = 0;
+    if ($lowStmt) {
+        $lowStmt->bind_param('i', $threshold);
+        $lowStmt->execute();
+        $lowStockCount = (int)($lowStmt->get_result()->fetch_row()[0] ?? 0);
+        $lowStmt->close();
     }
-    $lowResult = $conn->query("SELECT COUNT(*) FROM medicines WHERE quantity <= COALESCE(NULLIF(reorder_point, 0), $threshold)");
-    $lowStockCount = $lowResult ? (int)$lowResult->fetch_row()[0] : 0;
 
-    // 5. Expiring in 30 days
-    $exp30Result = $conn->query("SELECT COUNT(*) FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND expiry_date >= CURDATE()");
+    // 5. Expiring soon uses the configured expiry-alert window.
+    $expiryDays = getExpiryAlertDays($conn);
+    $exp30Result = $conn->query("SELECT COUNT(*) FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL $expiryDays DAY) AND expiry_date >= CURDATE()");
     $expiring30Count = $exp30Result ? (int)$exp30Result->fetch_row()[0] : 0;
 
     // Expiring suppliers
-    $supExpResult = $conn->query("SELECT suppliers FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND expiry_date >= CURDATE()");
+    $supExpResult = $conn->query("SELECT suppliers FROM medicines WHERE expiry_date IS NOT NULL AND expiry_date <= DATE_ADD(CURDATE(), INTERVAL $expiryDays DAY) AND expiry_date >= CURDATE()");
     $expiringSuppliers = [];
     if ($supExpResult) {
         while ($row = $supExpResult->fetch_assoc()) {
@@ -187,11 +183,15 @@ try {
     echo json_encode([
         'success' => true,
         'kpis' => [
-            'today_sales' => $todaySales,
+            'month_sales' => $monthSales,
+            'today_sales' => $monthSales,
+            'next_month_projected_sales' => $nextMonthProjectedSales,
             'sales_change_percent' => $salesChangePercent,
             'inventory_value' => $inventoryCostValue,
             'low_stock_count' => $lowStockCount,
+            'low_stock_threshold' => $threshold,
             'expiring_count_30' => $expiring30Count,
+            'expiry_alert_days' => $expiryDays,
             'expiring_suppliers_count' => $expiringSuppliersCount,
             'pending_orders_count' => $pendingOrdersCount,
             'pending_orders_awaiting_approval' => $awaitingApprovalCount
@@ -201,7 +201,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    error_log("Pharmacist dashboard metrics API error: " . $e->getMessage());
+    error_log("Dashboard metrics API error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,

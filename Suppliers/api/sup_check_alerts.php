@@ -17,13 +17,109 @@ try {
     $userId = $_SESSION['user_id'];
     $alerts = [];
     $alertsCreated = 0;
+
+    $supplierId = 0;
+    $supplierIdStmt = $conn->prepare("SELECT id FROM suppliers WHERE user_id = ? LIMIT 1");
+    if ($supplierIdStmt) {
+        $supplierIdStmt->bind_param('i', $userId);
+        $supplierIdStmt->execute();
+        $supplierRow = $supplierIdStmt->get_result()->fetch_assoc();
+        $supplierIdStmt->close();
+        $supplierId = (int)($supplierRow['id'] ?? 0);
+    }
+
+    // Show the supplier's own low and zero stock items in the dashboard alerts.
+    if ($supplierId > 0) {
+        $lowThreshold = getLowStockThreshold($conn);
+        $lowStockStmt = $conn->prepare(
+            "SELECT m.name, si.quantity
+             FROM supplier_inventory si
+             INNER JOIN medicines m ON m.id = si.medicine_id
+             WHERE si.supplier_id = ? AND si.quantity > 0 AND si.quantity <= ?
+             ORDER BY si.quantity ASC, m.name ASC
+             LIMIT 10"
+        );
+        if ($lowStockStmt) {
+            $lowStockStmt->bind_param('ii', $supplierId, $lowThreshold);
+            $lowStockStmt->execute();
+            $lowStockResult = $lowStockStmt->get_result();
+            while ($row = $lowStockResult->fetch_assoc()) {
+                $alerts[] = [
+                    'type' => 'supplier_low_stock',
+                    'message' => "Low supplier stock: {$row['name']} has {$row['quantity']} units left",
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'medicine' => $row['name'],
+                    'quantity' => (int)$row['quantity']
+                ];
+            }
+            $lowStockStmt->close();
+        }
+
+        $zeroStockStmt = $conn->prepare(
+            "SELECT DISTINCT m.name
+             FROM supplier_medicines sm
+             INNER JOIN medicines m ON m.id = sm.medicine_id
+             LEFT JOIN supplier_inventory si
+                    ON si.supplier_id = sm.supplier_id AND si.medicine_id = sm.medicine_id
+             WHERE sm.supplier_id = ? AND COALESCE(si.quantity, 0) <= 0
+             ORDER BY m.name ASC
+             LIMIT 10"
+        );
+        if ($zeroStockStmt) {
+            $zeroStockStmt->bind_param('i', $supplierId);
+            $zeroStockStmt->execute();
+            $zeroStockResult = $zeroStockStmt->get_result();
+            while ($row = $zeroStockResult->fetch_assoc()) {
+                $alerts[] = [
+                    'type' => 'supplier_out_of_stock',
+                    'message' => "Out of supplier stock: {$row['name']} needs resupply",
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'medicine' => $row['name'],
+                    'quantity' => 0
+                ];
+            }
+            $zeroStockStmt->close();
+        }
+    }
+
+    // Show active auto-reorder requests assigned to this supplier.
+    $supplierStmt = $conn->prepare(
+        "SELECT o.id, m.name AS medicine_name, oi.quantity, o.status, o.order_date
+         FROM orders o
+         INNER JOIN order_items oi ON oi.order_id = o.id
+         INNER JOIN medicines m ON m.id = oi.medicine_id
+         INNER JOIN suppliers s ON s.id = o.supplier_id
+         WHERE s.user_id = ?
+           AND o.status IN ('pending', 'ordered', 'accepted')
+           AND o.notes LIKE 'Auto-reorder triggered:%'
+         ORDER BY o.order_date DESC, o.id DESC
+         LIMIT 10"
+    );
+    if ($supplierStmt) {
+        $supplierStmt->bind_param('i', $userId);
+        $supplierStmt->execute();
+        $supplierResult = $supplierStmt->get_result();
+        while ($row = $supplierResult->fetch_assoc()) {
+            $alerts[] = [
+                'type' => 'resupply_needed',
+                'message' => "Resupply needed: {$row['medicine_name']} - {$row['quantity']} units (Order #{$row['id']})",
+                'timestamp' => $row['order_date'],
+                'medicine' => $row['medicine_name'],
+                'quantity' => (int)$row['quantity'],
+                'order_id' => (int)$row['id'],
+                'status' => $row['status']
+            ];
+        }
+        $supplierStmt->close();
+    }
     
     // Check if we should send notifications based on frequency
     if (!shouldSendNotifications($conn)) {
         echo json_encode([
             'success' => true,
             'message' => 'Notifications skipped due to frequency settings',
-            'alerts_created' => 0
+            'alerts_created' => 0,
+            'alerts' => $alerts
         ]);
         exit();
     }

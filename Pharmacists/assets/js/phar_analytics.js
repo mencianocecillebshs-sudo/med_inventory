@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getFixedRange = () => {
         const end = new Date();
         const start = new Date(end);
-        start.setDate(end.getDate() - 13);
+        start.setMonth(end.getMonth() - 1);
         return {
             start: start.toISOString().split('T')[0],
             end: end.toISOString().split('T')[0]
@@ -67,8 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
      *  Initialise date pickers
      * ------------------------------------------------------------------ */
     const initializeDateRange = async () => {
-        applySavedRangeOrFixed();
-        return;
+        const end = new Date();
+        end.setHours(0, 0, 0, 0);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 13);
+        const formatDate = date => date.toISOString().split('T')[0];
+        startDate.value = formatDate(start);
+        endDate.value = formatDate(end);
     };
 
     /* ------------------------------------------------------------------ *
@@ -418,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return a.days_until_empty - b.days_until_empty;
                 });
                 const labels = sorted.map(x => x.name);
-                const days = sorted.map(x => parseFloat(x.days_until_empty) || 0);
+                const days = sorted.map(x => x.days_until_empty == null ? null : parseFloat(x.days_until_empty));
                 const colors = sorted.map(x =>
                     x.status === 'critical' ? '#ef4444' :
                         x.status === 'warning' ? '#f59e0b' : '#10b981'

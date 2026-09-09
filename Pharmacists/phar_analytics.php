@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
@@ -25,18 +25,53 @@ if (!isset($_SESSION['user_id'])) {
         .card h5{font-weight:700;font-size:1.1rem;display:flex;align-items:center;}
         .card h5 i{margin-right:.5rem;color:#1b5e3f;}
         .filter-card{background:#fff;padding:1.5rem;margin-bottom:2rem;border-radius:15px;box-shadow:0 4px 16px rgba(0,0,0,.06);border-left:5px solid #1b5e3f;}
+        .filter-card h6{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;color:#0f3f28;font-weight:800;}
+        .analytics-filter-grid{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:end;}
+        .analytics-date-grid{display:grid;grid-template-columns:minmax(320px,1fr) auto auto;gap:.85rem;align-items:end;}
+        .date-range-panel{display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:end;padding:.85rem;border:1px solid #d1fae5;border-radius:14px;background:linear-gradient(135deg,#f8fafc,#ecfdf5);box-shadow:inset 0 1px 0 rgba(255,255,255,.85);}
+        .date-field{min-width:0;}
+        .date-field .form-label{display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem;color:#335045;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+        .date-input-shell{position:relative;}
+        .date-input-shell i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#1b5e3f;pointer-events:none;z-index:1;}
+        .date-input-shell .form-control{min-height:46px;padding-left:2.65rem;padding-right:.85rem;background:#fff;color:#1e293b;border-color:#b7e4ce;box-shadow:0 6px 18px rgba(15,63,40,.07);}
+        .date-input-shell .form-control:hover{border-color:#1b5e3f;background:#f8fffb;box-shadow:0 8px 22px rgba(15,63,40,.12);}
+        .date-input-shell .form-control:focus{background:#fff;border-color:#1b5e3f;box-shadow:0 0 0 .22rem rgba(27,94,63,.16);}
+        .date-input-shell input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.85;filter:sepia(70%) saturate(600%) hue-rotate(88deg) brightness(70%);}
+        .date-range-separator{display:grid;place-items:center;width:38px;height:38px;margin-bottom:.25rem;border-radius:999px;background:#1b5e3f;color:#fff;box-shadow:0 6px 14px rgba(27,94,63,.22);}
+        .date-range-status{grid-column:1 / -1;display:flex;align-items:center;gap:.45rem;min-height:1.2rem;color:#64748b;font-size:.8rem;font-weight:700;}
+        .date-range-status i{color:#1b5e3f;}
+        .algo-filter-panel{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+        .algo-filter-copy h6{margin-bottom:.25rem;}
+        .algo-filter-copy p{margin:0;color:#64748b;font-size:.875rem;}
+        .algo-dropdown{min-width:min(100%,360px);}
+        .algo-dropdown .dropdown-toggle{display:flex;align-items:center;justify-content:space-between;gap:.75rem;border:2px solid #d1fae5;background:#f8fafc;color:#0f3f28;border-radius:12px;padding:.8rem 1rem;font-weight:700;box-shadow:0 4px 14px rgba(15,63,40,.08);}
+        .algo-dropdown .dropdown-toggle:hover,.algo-dropdown .dropdown-toggle:focus{background:#dff8ec;border-color:#1b5e3f;color:#062f1d;box-shadow:0 0 0 .2rem rgba(27,94,63,.14),0 10px 22px rgba(15,63,40,.12);}
+        .algo-dropdown .dropdown-menu{width:100%;border:1px solid #d1fae5;border-radius:14px;padding:.45rem;box-shadow:0 16px 42px rgba(15,23,42,.16);}
+        .algo-dropdown .dropdown-item{border-radius:10px;padding:.7rem .85rem;font-weight:600;color:#334155;display:flex;align-items:center;gap:.65rem;}
+        .algo-dropdown .dropdown-item i{color:#1b5e3f;font-size:1rem;}
+        .algo-dropdown .dropdown-item:hover,.algo-dropdown .dropdown-item:focus{background:#dff8ec;color:#062f1d;}
+        .algo-dropdown .dropdown-item.active{background:linear-gradient(135deg,#1b5e3f,#0f3f28);color:#fff;}
+        .algo-dropdown .dropdown-item.active i{color:#fff;}
+        .algorithm-grid.is-filtered{justify-content:center;}
+        .algorithm-grid.is-filtered > [data-algo-column]{width:100%;max-width:1120px;flex:0 0 100%;}
+        .algorithm-grid.is-filtered .algo-card{min-height:620px;}
+        .algorithm-grid.is-filtered .chart-container{height:560px;}
+        .algo-card{transition:transform .25s ease,box-shadow .25s ease,opacity .2s ease,border-color .2s ease;}
+        .algo-card:hover{transform:translateY(-3px);box-shadow:0 16px 38px rgba(15,63,40,.14);border-color:#b7e4ce;}
+        .algo-card.is-selected{box-shadow:0 18px 46px rgba(15,63,40,.14);}
         .form-control,.form-select{border-radius:10px;border:2px solid #e2e8f0;padding:.65rem 1rem;}
         .form-control:focus,.form-select:focus{border-color:#1b5e3f;box-shadow:0 0 0 .2rem rgba(27,94,63,.15);}
         .btn-primary{background:linear-gradient(135deg,#1b5e3f,#0f3f28);border:none;border-radius:10px;padding:.65rem 1.5rem;font-weight:600;}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(27,94,63,.3);}
+        .btn-primary:hover,.btn-primary:focus-visible{background:linear-gradient(135deg,#2e8a61,#17664d);color:#fff;transform:translateY(-2px);box-shadow:0 7px 18px rgba(27,94,63,.32);}
         .btn-warning{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:white;}
-        .btn-warning:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(245,158,11,.3);}
+        .btn-warning:hover,.btn-warning:focus-visible{background:linear-gradient(135deg,#fbbf24,#b45309);color:#1f1300;transform:translateY(-2px);box-shadow:0 7px 18px rgba(245,158,11,.32);}
         canvas{max-height:400px;}
         .chart-container{position:relative;height:400px;}
         .forecast-guide{margin-top:1rem;padding:1rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;}
         .forecast-guide p{margin-bottom:.5rem;color:#475569;}
         .forecast-details {display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;margin-top:.75rem;}
-        .forecast-detail {padding:.75rem;background:#fff;border-left:4px solid #f59e0b;border-radius:6px;color:#475569;font-size:.85rem;}
+        .forecast-detail {padding:.75rem;background:#fff;border-left:4px solid #f59e0b;border-radius:6px;color:#475569;font-size:.85rem;transition:background .2s ease,box-shadow .2s ease,transform .2s ease;}
+        .forecast-detail:hover{background:#fffbeb;box-shadow:0 8px 20px rgba(15,23,42,.08);transform:translateY(-1px);}
         .forecast-detail.critical {border-left-color:#ef4444;}
         .forecast-detail strong {color:#1e293b;}
         body.dark-mode .forecast-detail {background:#111827;color:#cbd5e1;}
@@ -45,18 +80,20 @@ if (!isset($_SESSION['user_id'])) {
 
         /* Modal Summary Styling */
         .insight-item {padding:1rem;border-radius:12px;margin-bottom:1rem;border:1px solid #fde68a;background:#fff9c4;transition:all .2s;}
-        .insight-item:hover {transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1);}
+        .insight-item:hover {transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,23,42,.14);}
         .insight-item.critical {background:#fee2e2;border-color:#fca5a5;color:#991b1b;}
         .insight-item.warning {background:#fef3c7;border-color:#fbbf24;}
         .insight-item.success {background:#ecfdf5;border-color:#6ee7b7;}
         .insight-item.info {background:#eff6ff;border-color:#93c5fd;color:#1e3a8a;}
         .insight-item .icon {font-size:1.5rem;margin-right:.75rem;}
         .core-insights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-bottom:1.5rem;}
-        .core-insight{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;box-shadow:0 4px 16px rgba(0,0,0,.05);}
+        .core-insight{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;box-shadow:0 4px 16px rgba(0,0,0,.05);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+        .core-insight:hover{transform:translateY(-2px);border-color:#b7e4ce;box-shadow:0 12px 28px rgba(15,63,40,.12);}
         .core-insight span{display:block;color:#64748b;font-weight:700;font-size:.85rem;margin-bottom:.35rem;}
         .core-insight strong{font-size:1.35rem;color:#0f3f28;}
         .core-insight small.core-sub{display:block;color:#94a3b8;font-weight:500;font-size:.75rem;margin-top:.25rem;}
         @media(max-width:992px){.core-insights{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media(max-width:768px){.analytics-date-grid{grid-template-columns:1fr;}.date-range-panel{grid-template-columns:1fr;}.date-range-separator{width:100%;height:30px;margin:0;}.date-range-separator i{transform:rotate(90deg);}.algo-filter-panel{align-items:stretch;flex-direction:column;}.algo-dropdown{min-width:100%;}.algorithm-grid.is-filtered .chart-container{height:380px;}}
         @media(max-width:576px){.core-insights{grid-template-columns:1fr;}}
 
         /* ===== DARK MODE ===== */
@@ -78,6 +115,65 @@ if (!isset($_SESSION['user_id'])) {
             color:#e2e8f0 !important;
         }
         body.dark-mode .filter-card h6 { color:#e2e8f0 !important; }
+        body.dark-mode .date-range-panel {
+            background:linear-gradient(135deg,rgba(46,204,113,.12),rgba(15,63,40,.12)),#0f172a !important;
+            border-color:rgba(46,204,113,.24) !important;
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 26px rgba(0,0,0,.2) !important;
+        }
+        body.dark-mode .date-field .form-label { color:#a7f3d0 !important; }
+        body.dark-mode .date-input-shell i { color:#6ee7b7 !important; }
+        body.dark-mode .date-input-shell .form-control {
+            background:#111827 !important;
+            color:#f8fafc !important;
+            border-color:#334155 !important;
+            box-shadow:0 8px 22px rgba(0,0,0,.22) !important;
+        }
+        body.dark-mode .date-input-shell .form-control:hover {
+            background:#172033 !important;
+            border-color:#6ee7b7 !important;
+            color:#ffffff !important;
+        }
+        body.dark-mode .date-input-shell .form-control:focus {
+            background:#0f172a !important;
+            border-color:#2ecc71 !important;
+            box-shadow:0 0 0 .22rem rgba(46,204,113,.22) !important;
+        }
+        body.dark-mode .date-input-shell input[type="date"]::-webkit-calendar-picker-indicator {
+            filter:invert(88%) sepia(22%) saturate(798%) hue-rotate(92deg) brightness(98%);
+        }
+        body.dark-mode .date-range-separator {
+            background:#2ecc71 !important;
+            color:#062f1d !important;
+            box-shadow:0 8px 18px rgba(46,204,113,.18) !important;
+        }
+        body.dark-mode .date-range-status { color:#cbd5e1 !important; }
+        body.dark-mode .date-range-status i { color:#6ee7b7 !important; }
+        body.dark-mode .algo-filter-copy p { color:#94a3b8 !important; }
+        body.dark-mode .algo-dropdown .dropdown-toggle {
+            background:#1e293b !important;
+            color:#e2e8f0 !important;
+            border-color:#334155 !important;
+            box-shadow:0 4px 16px rgba(0,0,0,.3) !important;
+        }
+        body.dark-mode .algo-dropdown .dropdown-toggle:hover,
+        body.dark-mode .algo-dropdown .dropdown-toggle:focus {
+            background:#163828 !important;
+            border-color:#6ee7b7 !important;
+            color:#ffffff !important;
+            box-shadow:0 0 0 .2rem rgba(46,204,113,.22),0 10px 24px rgba(0,0,0,.28) !important;
+        }
+        body.dark-mode .algo-dropdown .dropdown-menu {
+            background:#111827 !important;
+            border-color:#334155 !important;
+            box-shadow:0 16px 42px rgba(0,0,0,.45) !important;
+        }
+        body.dark-mode .algo-dropdown .dropdown-item { color:#cbd5e1 !important; }
+        body.dark-mode .algo-dropdown .dropdown-item:hover,
+        body.dark-mode .algo-dropdown .dropdown-item:focus { background:#163828 !important; color:#ffffff !important; }
+        body.dark-mode .algo-dropdown .dropdown-item:hover i,
+        body.dark-mode .algo-dropdown .dropdown-item:focus i { color:#6ee7b7 !important; }
+        body.dark-mode .algo-dropdown .dropdown-item.active { background:linear-gradient(135deg,#2ecc71,#1b5e3f) !important; color:#062f1d !important; }
+        body.dark-mode .algo-dropdown .dropdown-item.active i { color:#062f1d !important; }
 
         body.dark-mode .form-label { color:#cbd5e1 !important; }
         body.dark-mode .form-control,
@@ -97,6 +193,12 @@ if (!isset($_SESSION['user_id'])) {
             border-color:#334155 !important;
             box-shadow:0 4px 16px rgba(0,0,0,.3) !important;
         }
+        body.dark-mode .core-insight:hover,
+        body.dark-mode .algo-card:hover {
+            background:#172033 !important;
+            border-color:#6ee7b7 !important;
+            box-shadow:0 16px 34px rgba(0,0,0,.34) !important;
+        }
         body.dark-mode .core-insight span { color:#94a3b8 !important; }
         body.dark-mode .core-insight strong { color:#6ee7b7 !important; }
         body.dark-mode .core-insight small.core-sub { color:#64748b !important; }
@@ -108,6 +210,10 @@ if (!isset($_SESSION['user_id'])) {
             background:#1a2a1a !important;
             border-color:#2ecc71 !important;
             color:#d1fae5 !important;
+        }
+        body.dark-mode .insight-item:hover {
+            box-shadow:0 10px 24px rgba(0,0,0,.34) !important;
+            filter:brightness(1.08);
         }
         body.dark-mode .insight-item.critical {
             background:#2d1515 !important;
@@ -148,6 +254,26 @@ if (!isset($_SESSION['user_id'])) {
             border-color:#475569 !important;
             color:#e2e8f0 !important;
         }
+        body.dark-mode .forecast-guide {
+            background:#0f172a !important;
+            border-color:#334155 !important;
+            color:#cbd5e1 !important;
+        }
+        body.dark-mode .forecast-guide p,
+        body.dark-mode .forecast-guide .small { color:#cbd5e1 !important; }
+        body.dark-mode .forecast-detail:hover { background:#172033 !important; }
+        body.dark-mode .btn-primary:hover,
+        body.dark-mode .btn-primary:focus-visible {
+            background:linear-gradient(135deg,#2ecc71,#1b5e3f) !important;
+            color:#062f1d !important;
+            box-shadow:0 8px 20px rgba(46,204,113,.22) !important;
+        }
+        body.dark-mode .btn-warning:hover,
+        body.dark-mode .btn-warning:focus-visible {
+            background:linear-gradient(135deg,#fde68a,#f59e0b) !important;
+            color:#1f1300 !important;
+            box-shadow:0 8px 20px rgba(245,158,11,.22) !important;
+        }
         body.dark-mode .text-muted { color:#94a3b8 !important; }
         /* ===== Spacious layout overrides ===== */
         .main-content { padding: 3rem; }
@@ -160,6 +286,94 @@ if (!isset($_SESSION['user_id'])) {
             .card { padding: 1rem; margin-bottom: 1rem; }
             .core-insights { gap: .75rem; }
             .chart-container { height: 320px; }
+        }
+
+        /* Analytics-specific overrides beat the shared nav theme layer. */
+        body #mainContent .date-range-panel {
+            background:linear-gradient(135deg,#f8fafc,#ecfdf5) !important;
+            border-color:#d1fae5 !important;
+        }
+        body #mainContent .date-input-shell .form-control {
+            min-height:46px !important;
+            padding-left:2.65rem !important;
+            background:#ffffff !important;
+            color:#1e293b !important;
+            border-color:#b7e4ce !important;
+        }
+        body #mainContent .date-input-shell .form-control:hover {
+            background:#f8fffb !important;
+            color:#0f172a !important;
+            border-color:#1b5e3f !important;
+        }
+        body #mainContent .btn-warning {
+            background:linear-gradient(135deg,#f59e0b,#d97706) !important;
+            border-color:transparent !important;
+            color:#ffffff !important;
+        }
+        body #mainContent .btn-warning:hover,
+        body #mainContent .btn-warning:focus-visible {
+            background:linear-gradient(135deg,#fbbf24,#b45309) !important;
+            color:#1f1300 !important;
+        }
+        body #mainContent .algo-dropdown .dropdown-toggle:hover,
+        body #mainContent .algo-dropdown .dropdown-toggle:focus {
+            background:#dff8ec !important;
+            color:#062f1d !important;
+            border-color:#1b5e3f !important;
+        }
+        body #mainContent .algo-dropdown .dropdown-item:hover,
+        body #mainContent .algo-dropdown .dropdown-item:focus {
+            background:#dff8ec !important;
+            color:#062f1d !important;
+        }
+        body.dark-mode #mainContent .date-range-panel {
+            background:linear-gradient(135deg,rgba(46,204,113,.12),rgba(15,63,40,.12)),#0f172a !important;
+            border-color:rgba(46,204,113,.24) !important;
+        }
+        body.dark-mode #mainContent .date-input-shell .form-control {
+            background:#111827 !important;
+            color:#f8fafc !important;
+            border-color:#334155 !important;
+        }
+        body.dark-mode #mainContent .date-input-shell .form-control:hover {
+            background:#172033 !important;
+            color:#ffffff !important;
+            border-color:#6ee7b7 !important;
+        }
+        body.dark-mode #mainContent .date-input-shell .form-control:focus {
+            background:#0f172a !important;
+            color:#ffffff !important;
+            border-color:#2ecc71 !important;
+        }
+        body.dark-mode #mainContent .btn-primary:hover,
+        body.dark-mode #mainContent .btn-primary:focus-visible {
+            background:linear-gradient(135deg,#2ecc71,#1b5e3f) !important;
+            color:#062f1d !important;
+        }
+        body.dark-mode #mainContent .btn-warning,
+        body.dark-mode #mainContent .btn-warning:hover,
+        body.dark-mode #mainContent .btn-warning:focus-visible {
+            border-color:transparent !important;
+        }
+        body.dark-mode #mainContent .btn-warning:hover,
+        body.dark-mode #mainContent .btn-warning:focus-visible {
+            background:linear-gradient(135deg,#fde68a,#f59e0b) !important;
+            color:#1f1300 !important;
+        }
+        body.dark-mode #mainContent .algo-dropdown .dropdown-toggle:hover,
+        body.dark-mode #mainContent .algo-dropdown .dropdown-toggle:focus,
+        body.dark-mode #mainContent .algo-dropdown .dropdown-item:hover,
+        body.dark-mode #mainContent .algo-dropdown .dropdown-item:focus {
+            background:#163828 !important;
+            color:#ffffff !important;
+            border-color:#6ee7b7 !important;
+        }
+        body.dark-mode #mainContent .core-insight:hover,
+        body.dark-mode #mainContent .algo-card:hover,
+        body.dark-mode #summaryModal .insight-item:hover {
+            background:#172033 !important;
+            border-color:#6ee7b7 !important;
+            color:#f8fafc !important;
         }
     </style>
 </head>
@@ -179,11 +393,30 @@ if (!isset($_SESSION['user_id'])) {
         <!-- Date filter + Summary Button -->
         <div class="filter-card">
             <h6><i class="bi bi-funnel"></i> Date range</h6>
-            <div class="row align-items-end g-2">
-                <div class="col-md-4"><label class="form-label">Start</label><input type="date" class="form-control" id="start-date"></div>
-                <div class="col-md-4"><label class="form-label">End</label><input type="date" class="form-control" id="end-date"></div>
-                <div class="col-md-2"><button class="btn btn-primary w-100" id="apply-filter"><i class="bi bi-check-circle"></i> Apply</button></div>
-                <div class="col-md-2">
+            <div class="analytics-date-grid">
+                <div class="date-range-panel" aria-label="Analytics date range">
+                    <div class="date-field">
+                        <label class="form-label" for="start-date"><i class="bi bi-calendar-event"></i> Start</label>
+                        <div class="date-input-shell">
+                            <i class="bi bi-calendar3"></i>
+                            <input type="date" class="form-control" id="start-date" aria-describedby="date-range-status">
+                        </div>
+                    </div>
+                    <div class="date-range-separator" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+                    <div class="date-field">
+                        <label class="form-label" for="end-date"><i class="bi bi-calendar-check"></i> End</label>
+                        <div class="date-input-shell">
+                            <i class="bi bi-calendar3"></i>
+                            <input type="date" class="form-control" id="end-date" aria-describedby="date-range-status">
+                        </div>
+                    </div>
+                    <div class="date-range-status" id="date-range-status">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="date-range-label">Select a start and end date.</span>
+                    </div>
+                </div>
+                <div><button class="btn btn-primary w-100" id="apply-filter"><i class="bi bi-check-circle"></i> Apply</button></div>
+                <div>
                     <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#summaryModal">
                         <i class="bi bi-lightbulb-fill"></i> Summary
                     </button>
@@ -193,23 +426,25 @@ if (!isset($_SESSION['user_id'])) {
 
         <!-- Algorithm filter dropdown -->
         <div class="filter-card mb-2" aria-label="Algorithm filter">
-            <h6><i class="bi bi-funnel"></i> Algorithm</h6>
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <label class="form-label visually-hidden">Algorithm</label>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary dropdown-toggle w-100" id="algoFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">All Algorithms</button>
-                        <ul class="dropdown-menu" id="algoFilterMenu" aria-labelledby="algoFilterBtn">
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="all">All Algorithms</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="demand">Demand Forecast</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="top-medicines">Top 10 Medicines</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="supply-vs-demand">Supply vs Demand</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="random-forest">Random Forest</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="isolation-forest">Isolation Forest</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="prophet">Facebook Prophet</a></li>
-                            <li><a class="dropdown-item algo-select" href="#" data-algo="low-stock">Low-Stock Forecast</a></li>
-                        </ul>
-                    </div>
+            <div class="algo-filter-panel">
+                <div class="algo-filter-copy">
+                    <h6><i class="bi bi-funnel"></i> Algorithm</h6>
+                    <p>Choose one view or show every analytics model.</p>
+                </div>
+                <div class="dropdown algo-dropdown">
+                    <button class="btn dropdown-toggle w-100" id="algoFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="algoFilterLabel">All Algorithms</span>
+                    </button>
+                    <ul class="dropdown-menu" id="algoFilterMenu" aria-labelledby="algoFilterBtn">
+                        <li><a class="dropdown-item algo-select active" href="#" data-algo="all"><i class="bi bi-grid-3x3-gap"></i>All Algorithms</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="demand"><i class="bi bi-graph-up"></i>Demand Forecast</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="top-medicines"><i class="bi bi-bar-chart"></i>Top 10 Items</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="supply-vs-demand"><i class="bi bi-arrow-left-right"></i>Supply vs Demand</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="random-forest"><i class="bi bi-cpu"></i>Random Forest</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="isolation-forest"><i class="bi bi-shield-exclamation"></i>Isolation Forest</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="prophet"><i class="bi bi-calendar3-week"></i>Facebook Prophet</a></li>
+                        <li><a class="dropdown-item algo-select" href="#" data-algo="low-stock"><i class="bi bi-exclamation-triangle"></i>Low-Stock Forecast</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -217,7 +452,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="core-insights" aria-label="Core analytics insights">
             <div class="core-insight"><span>Total Demand</span><strong id="core-demand">Loading...</strong></div>
             <div class="core-insight"><span>Total Supply</span><strong id="core-supply">Loading...</strong></div>
-            <div class="core-insight"><span>Top Medicine</span><strong id="core-top">Loading...</strong></div>
+            <div class="core-insight"><span>Top Item</span><strong id="core-top">Loading...</strong></div>
             <div class="core-insight">
                 <span>Low-Stock Risk</span>
                 <strong id="core-risk">Loading...</strong>
@@ -225,9 +460,9 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
 
-        <div class="row">
+        <div class="row algorithm-grid" id="algorithmGrid">
             <!-- Demand forecast -->
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="demand">
                     <h5><i class="bi bi-graph-up"></i> Demand Forecast
                         <span id="demand-loading" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
@@ -238,16 +473,16 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
             <!-- Top medicines -->
-            <div class="col-lg-6 mb-4">
+            <div class="col-lg-6 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="top-medicines">
-                    <h5><i class="bi bi-bar-chart"></i> Top 10 Medicines</h5>
+                    <h5><i class="bi bi-bar-chart"></i> Top 10 Items</h5>
                     <div class="chart-container"><canvas id="topMedicinesChart"></canvas></div>
-                    <div class="forecast-guide"><p class="small mb-0"><strong>How to read this:</strong> Longer bars represent medicines with more units dispensed during the selected period.</p></div>
+                    <div class="forecast-guide"><p class="small mb-0"><strong>How to read this:</strong> Longer bars represent items with more units dispensed during the selected period.</p></div>
                 </div>
             </div>
 
             <!-- Supply vs Demand -->
-            <div class="col-lg-6 mb-4">
+            <div class="col-lg-6 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="supply-vs-demand">
                     <h5><i class="bi bi-arrow-left-right"></i> Supply vs Demand</h5>
                     <div class="chart-container"><canvas id="trendsChart"></canvas></div>
@@ -258,7 +493,7 @@ if (!isset($_SESSION['user_id'])) {
             
 
             <!-- Random Forest forecasting overview -->
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="random-forest">
                     <h5><i class="bi bi-cpu"></i> Machine Learning Models for Retail Demand Forecasting Using Random Forest</h5>
                     <div class="chart-container"><canvas id="randomForestForecastChart"></canvas></div>
@@ -267,7 +502,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
             <!-- Isolation Forest anomaly detection overview -->
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="isolation-forest">
                     <h5><i class="bi bi-shield-exclamation"></i> Detecting Inventory Anomalies Through Isolation Forest in Retail Stock Audits</h5>
                     <p class="mb-3 small text-muted">
@@ -279,7 +514,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
             <!-- Facebook Prophet forecasting overview -->
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="prophet">
                     <h5><i class="bi bi-calendar3-week"></i> Predicting Drug Expenditures Using Facebook Prophet in Pharmaceutical Installations</h5>
                     <p class="mb-3 small text-muted">
@@ -291,7 +526,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
 
             <!-- Low-stock forecast -->
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-4" data-algo-column>
                 <div class="card algo-card" data-algorithm="low-stock">
                     <h5><i class="bi bi-exclamation-triangle"></i> Low-Stock Forecast
                         <span class="badge bg-light text-dark border ms-2" id="low-stock-threshold-badge" style="font-weight:500;">&nbsp;</span>
@@ -342,6 +577,8 @@ if (!isset($_SESSION['user_id'])) {
         const coreRiskSub = document.getElementById('core-risk-sub');
         const lowStockThresholdBadge = document.getElementById('low-stock-threshold-badge');
         const lowStockForecastDetails = document.getElementById('low-stock-forecast-details');
+        const dateRangeLabel = document.getElementById('date-range-label');
+        const chartCanvasIds = ['demandChart', 'topMedicinesChart', 'trendsChart', 'stockForecastChart', 'randomForestForecastChart', 'isolationForestChart', 'prophetForecastChart'];
 
         let demandChart, topChart, trendsChart, stockChart;
 
@@ -387,6 +624,42 @@ if (!isset($_SESSION['user_id'])) {
             const formatDate = date => date.toISOString().split('T')[0];
             startDate.value = formatDate(start);
             endDate.value = formatDate(end);
+            updateDateRangeUi();
+        };
+
+        const formatRangeDate = (value) => {
+            if (!value) return '';
+            const date = new Date(`${value}T00:00:00`);
+            return Number.isNaN(date.getTime())
+                ? value
+                : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+
+        const updateDateRangeUi = () => {
+            if (!startDate || !endDate) return;
+            if (startDate.value) {
+                endDate.min = startDate.value;
+                if (endDate.value && new Date(endDate.value) < new Date(startDate.value)) {
+                    endDate.value = startDate.value;
+                }
+            } else {
+                endDate.removeAttribute('min');
+            }
+            if (endDate.value) {
+                startDate.max = endDate.value;
+            } else {
+                startDate.removeAttribute('max');
+            }
+            if (!dateRangeLabel) return;
+            if (startDate.value && endDate.value) {
+                dateRangeLabel.textContent = `${formatRangeDate(startDate.value)} to ${formatRangeDate(endDate.value)}`;
+            } else if (startDate.value) {
+                dateRangeLabel.textContent = `Starting ${formatRangeDate(startDate.value)}. Choose an end date.`;
+            } else if (endDate.value) {
+                dateRangeLabel.textContent = `Ending ${formatRangeDate(endDate.value)}. Choose a start date.`;
+            } else {
+                dateRangeLabel.textContent = 'Select a start and end date.';
+            }
         };
 
         const showToast = (msg, type = 'success') => {
@@ -449,6 +722,17 @@ if (!isset($_SESSION['user_id'])) {
             ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#94a3b8' : '#64748b';
             ctx.textAlign = 'center';
             ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+        };
+
+        const showInitialEmptyState = () => {
+            chartCanvasIds.forEach(id => showEmptyState(id, 'Choose a date range, then click Apply'));
+            coreDemand.textContent = 'Set dates';
+            coreSupply.textContent = 'Set dates';
+            coreTop.textContent = 'Set dates';
+            coreRisk.textContent = 'Set dates';
+            if (coreRiskSub) coreRiskSub.textContent = 'Manual date range required';
+            if (lowStockThresholdBadge) lowStockThresholdBadge.textContent = 'Set dates';
+            if (lowStockForecastDetails) lowStockForecastDetails.innerHTML = '';
         };
 
         const dayThresholdLinePlugin = (criticalDays = 7, warningDays = 14) => ({
@@ -585,7 +869,7 @@ if (!isset($_SESSION['user_id'])) {
                     const d = res.data || [];
                     if (d.length === 0) {
                         if (topChart) topChart.destroy();
-                        showEmptyState('topMedicinesChart', 'No transactions found in this date range');
+                        showEmptyState('topMedicinesChart', 'No item demand found in this date range');
                         return;
                     }
                     const labels = d.map(x => x.medicine_name);
@@ -610,8 +894,8 @@ if (!isset($_SESSION['user_id'])) {
                     window.topMedicines = d.slice(0, 3);
                 })
                 .catch(err => {
-                    console.error('Top medicines error:', err);
-                    showToast('Error loading top medicines: ' + err.message, 'danger');
+                    console.error('Top items error:', err);
+                    showToast('Error loading top items: ' + err.message, 'danger');
                 });
         };
 
@@ -698,7 +982,7 @@ if (!isset($_SESSION['user_id'])) {
                         const cr = window.lowStockThresholds.critical;
                         lowStockThresholdBadge.textContent =
                             (lo !== null || cr !== null)
-                                ? `Thresholds: Low â‰¤ ${lo ?? 'â€”'} units Â· Critical â‰¤ ${cr ?? 'â€”'} units`
+                                ? `Thresholds: Low ≤ ${lo ?? '—'} units · Critical ≤ ${cr ?? '—'} units`
                                 : '';
                     }
 
@@ -820,7 +1104,7 @@ if (!isset($_SESSION['user_id'])) {
                         <span class="badge bg-${isSurplus ? 'success' : 'danger'} mt-1">
                             <i class="${icon}"></i> ${isSurplus ? '+' : ''}${net} ${isSurplus ? 'surplus' : 'shortfall'}
                         </span>
-                        <div class="small mt-1">${isSurplus ? 'Restocking is keeping pace with usage in this period.' : 'Usage is outpacing restocking â€” this tends to increase the number of low-stock items if it continues.'}</div>
+                        <div class="small mt-1">${isSurplus ? 'Restocking is keeping pace with usage in this period.' : 'Usage is outpacing restocking — this tends to increase the number of low-stock items if it continues.'}</div>
                     </div>
                 </div>`;
             }
@@ -872,7 +1156,7 @@ if (!isset($_SESSION['user_id'])) {
                             ? 'Facebook Prophet expects expenditure to remain stable, with seasonality balancing demand in the coming days.'
                             : null;
                 const prophetWhy = prophetTrend === 'increasing'
-                    ? 'This means stock needs are likely to increase soon, especially for fast-moving medicines.'
+                    ? 'This means stock needs are likely to increase soon, especially for fast-moving items.'
                     : prophetTrend === 'decreasing'
                         ? 'This means replenishment can be paced more carefully, since demand pressure is easing.'
                         : prophetTrend === 'stable'
@@ -880,8 +1164,8 @@ if (!isset($_SESSION['user_id'])) {
                             : null;
                 const prophetAction = prophetTrend === 'increasing'
                     ? (anomalyScore >= 65
-                        ? 'Recommendation: review purchase orders for top medicines and prioritize stock checks for high-risk items.'
-                        : 'Recommendation: review purchase orders for top medicines and schedule replenishment in 3â€“5 days.')
+                        ? 'Recommendation: review purchase orders for top items and prioritize stock checks for high-risk items.'
+                        : 'Recommendation: review purchase orders for top items and schedule replenishment in 3–5 days.')
                     : prophetTrend === 'decreasing'
                         ? 'Recommendation: hold new large orders and review inventory before the next seasonal shift.'
                         : prophetTrend === 'stable'
@@ -1011,7 +1295,7 @@ if (!isset($_SESSION['user_id'])) {
                         <i class="bi bi-check-circle-fill icon"></i>
                         <div>
                             <strong>All Clear</strong><br>
-                            <small>All medicines are above both thresholds and not projected to run out within 14 days (last 30 days of usage)</small>
+                            <small>All items are above both thresholds and not projected to run out within 14 days (last 30 days of usage)</small>
                         </div>
                     </div>`;
                 }
@@ -1037,11 +1321,11 @@ if (!isset($_SESSION['user_id'])) {
             if (coreRiskSub) {
                 if (critical + warning === 0) {
                     coreRiskSub.textContent = (lo !== null && lo !== undefined)
-                        ? `None below threshold (â‰¤${lo} units)`
+                        ? `None below threshold (≤${lo} units)`
                         : 'None below threshold';
                 } else {
                     coreRiskSub.textContent = `${critical} critical, ${warning} warning`
-                        + ((lo !== null && lo !== undefined) ? ` Â· thresholds: ${cr ?? 'â€”'}/${lo ?? 'â€”'} units` : '');
+                        + ((lo !== null && lo !== undefined) ? ` · thresholds: ${cr ?? '—'}/${lo ?? '—'} units` : '');
                 }
             }
         };
@@ -1217,12 +1501,15 @@ if (!isset($_SESSION['user_id'])) {
                 loadDemand(s, e);
                 loadTop(s, e);
                 loadTrends(s, e);
-                loadLowStock();
+                loadLowStock(s, e);
                 loadModelForecasts(s, e);
                 setTimeout(updateCoreInsights, 800);
                 showToast('Analytics updated', 'success');
+                return true;
             } else {
-                showToast('Invalid date range', 'danger');
+                showInitialEmptyState();
+                showToast('Please choose a valid start and end date first.', 'danger');
+                return false;
             }
         };
 
@@ -1241,22 +1528,15 @@ if (!isset($_SESSION['user_id'])) {
 
         initializeDateRange().then(() => {
             setTimeout(loadAll, 150);
-            startLiveRefresh();
-        });
-
-        [startDate, endDate].forEach(input => {
-            input.addEventListener('change', () => {
-                const s = startDate.value, e = endDate.value;
-                if (s && e && new Date(s) <= new Date(e)) {
-                    loadAll();
-                }
-            });
         });
 
         applyBtn.addEventListener('click', () => {
-            loadAll();
-            startLiveRefresh();
+            updateDateRangeUi();
+            if (loadAll()) startLiveRefresh();
         });
+
+        startDate?.addEventListener('change', updateDateRangeUi);
+        endDate?.addEventListener('change', updateDateRangeUi);
 
         // Update modal when opened
         const modalEl = document.getElementById('summaryModal');
@@ -1273,7 +1553,10 @@ if (!isset($_SESSION['user_id'])) {
                         loadDemand(s, e);
                         loadTop(s, e);
                         loadTrends(s, e);
-                        loadLowStock();
+                        loadLowStock(s, e);
+                        renderRandomForestForecastChart();
+                        renderIsolationForestChart();
+                        renderProphetForecastChart();
                     }
                 }
             });
@@ -1282,16 +1565,30 @@ if (!isset($_SESSION['user_id'])) {
 
         // Algorithm card filter
         const algoFilterBtn = document.getElementById('algoFilterBtn');
+        const algoFilterLabel = document.getElementById('algoFilterLabel');
+        const algorithmGrid = document.getElementById('algorithmGrid');
         const algoCards = Array.from(document.querySelectorAll('.algo-card'));
+        const algoColumns = Array.from(document.querySelectorAll('[data-algo-column]'));
         const setAlgoFilter = (algo, label) => {
-            if (algoFilterBtn) algoFilterBtn.textContent = label || 'All Algorithms';
+            if (algoFilterLabel) algoFilterLabel.textContent = label || 'All Algorithms';
+            document.querySelectorAll('.algo-select').forEach(item => {
+                item.classList.toggle('active', item.dataset.algo === (algo || 'all'));
+            });
             if (!algo || algo === 'all') {
-                algoCards.forEach(c => c.style.display = '');
+                algorithmGrid?.classList.remove('is-filtered');
+                algoColumns.forEach(col => col.style.display = '');
+                algoCards.forEach(c => c.classList.remove('is-selected'));
             } else {
-                algoCards.forEach(c => {
-                    c.style.display = (c.dataset.algorithm === algo) ? '' : 'none';
+                algorithmGrid?.classList.add('is-filtered');
+                algoColumns.forEach(col => {
+                    const card = col.querySelector('.algo-card');
+                    col.style.display = (card?.dataset.algorithm === algo) ? '' : 'none';
+                    card?.classList.toggle('is-selected', card.dataset.algorithm === algo);
                 });
             }
+            setTimeout(() => {
+                Object.values(Chart.instances || {}).forEach(chart => chart.resize());
+            }, 120);
         };
         document.querySelectorAll('.algo-select').forEach(a => {
             a.addEventListener('click', (ev) => {

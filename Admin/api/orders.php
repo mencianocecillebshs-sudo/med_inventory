@@ -570,13 +570,12 @@ try {
 
             $items_stmt = $conn->prepare("
                   SELECT oi.medicine_id, oi.quantity, oi.unit_price, oi.subtotal, m.name AS medicine_name,
-                      si.quantity AS supplier_stock,
                       COALESCE(NULLIF(sm.unit_price, 0), NULLIF(si.unit_price, 0), 0) AS supplier_cost
                 FROM order_items oi
                 INNER JOIN medicines m ON m.id = oi.medicine_id
-                INNER JOIN supplier_inventory si
-                    ON si.supplier_id = ?
-                   AND si.medicine_id = oi.medicine_id
+                     LEFT JOIN supplier_inventory si
+                          ON si.supplier_id = ?
+                         AND si.medicine_id = oi.medicine_id
                 LEFT JOIN supplier_medicines sm
                     ON sm.supplier_id = ?
                    AND sm.medicine_id = oi.medicine_id
@@ -589,9 +588,6 @@ try {
             $items_result = $items_stmt->get_result();
             $items = [];
             while ($item = $items_result->fetch_assoc()) {
-                if ((int)$item['supplier_stock'] < (int)$item['quantity']) {
-                    throw new Exception("Insufficient supplier stock for {$item['medicine_name']}");
-                }
                 $items[] = $item;
             }
             $items_stmt->close();
@@ -632,11 +628,10 @@ try {
                 $line_total = $quantity * $unit_price;
                 $supplier_cost = (float)$item['supplier_cost'];
 
-                $deduct_stmt = $conn->prepare("UPDATE supplier_inventory SET quantity = quantity - ? WHERE supplier_id = ? AND medicine_id = ? AND quantity >= ?");
+                $deduct_stmt = $conn->prepare("UPDATE supplier_inventory SET quantity = GREATEST(quantity - ?, 0) WHERE supplier_id = ? AND medicine_id = ?");
                 if (!$deduct_stmt) throw new Exception('Supplier inventory prepare failed: ' . $conn->error);
-                $deduct_stmt->bind_param('iiii', $quantity, $ord['supplier_id'], $medicine_id, $quantity);
+                $deduct_stmt->bind_param('iii', $quantity, $ord['supplier_id'], $medicine_id);
                 $deduct_stmt->execute();
-                if ($deduct_stmt->affected_rows === 0) throw new Exception("Unable to deduct supplier stock for {$item['medicine_name']}");
                 $deduct_stmt->close();
 
                 $add_stmt = $conn->prepare("UPDATE medicines SET quantity = quantity + ? WHERE id = ?");
